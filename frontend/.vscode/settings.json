@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "*.css": "css"
+    },
+    "editor.quickSuggestions": {
+        "strings": "on"
+    },
+    "tailwindCSS.classAttributes": [
+        "class",
+        "ui",
+        "active-class",
+        "inactive-class"
+    ],
+    "tailwindCSS.experimental.classRegex": [
+        ["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+    ],
+    "typescript.tsdk": "node_modules/typescript/lib",
+    
+  
+
+
+}

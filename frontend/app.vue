@@ -1,3 +1,7 @@
 <template>
-    <div>Incognito</div>
+    <UApp>
+        <NuxtLayout>
+            <NuxtPage />
+        </NuxtLayout>
+    </UApp>
 </template>

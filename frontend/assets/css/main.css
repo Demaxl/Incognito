@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+
+
+
+:root {
+    /* --ui-primary: #00bfff; */
+    --ui-primary: #46a6f8;
+  }
+  
+@theme {
+  --font-sans: "Fredoka", sans-serif;
+}
