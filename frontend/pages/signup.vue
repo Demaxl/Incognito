@@ -90,9 +90,7 @@
 
                     <p class="text-center text-sm text-gray-500">
                         Already have an account?
-                        <ULink
-                            href="/login"
-                            class="text-primary underline text-black"
+                        <ULink href="/login" class="text-primary-500 underline"
                             >Login</ULink
                         >
                     </p>
