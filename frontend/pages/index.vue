@@ -22,7 +22,7 @@
                         size="xl"
                         trailing-icon="i-lucide-arrow-right"
                         to="/signup"
-                        class="px-8"
+                        class="px-8 h-11"
                     >
                         Create your inbox
                     </UButton>
@@ -30,7 +30,7 @@
                         variant="outline"
                         size="xl"
                         to="/how-it-works"
-                        class="px-8"
+                        class="px-8 h-11"
                     >
                         Learn more
                     </UButton>
@@ -40,7 +40,9 @@
         <section class="container py-12 md:py-16">
             <div class="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
                 <div class="flex flex-col items-center text-center">
-                    <div class="mb-4 rounded-full bg-primary-500/10 p-4">
+                    <div
+                        class="mb-4 rounded-full flex items-center bg-primary-500/10 p-4"
+                    >
                         <UIcon name="ic:outline-forward-to-inbox" size="24" />
                     </div>
                     <h3 class="mb-2 text-xl font-medium">Create your inbox</h3>
@@ -50,7 +52,9 @@
                     </p>
                 </div>
                 <div class="flex flex-col items-center text-center">
-                    <div class="mb-4 rounded-full bg-primary-500/10 p-4">
+                    <div
+                        class="mb-4 rounded-full flex items-center bg-primary-500/10 p-4"
+                    >
                         <UIcon name="material-symbols:share" size="24" />
                     </div>
                     <h3 class="mb-2 text-xl font-medium">Share your link</h3>
@@ -59,7 +63,9 @@
                     </p>
                 </div>
                 <div class="flex flex-col items-center text-center">
-                    <div class="mb-4 rounded-full bg-primary-500/10 p-4">
+                    <div
+                        class="mb-4 rounded-full flex items-center bg-primary-500/10 p-4"
+                    >
                         <UIcon
                             name="material-symbols:android-messages-outline"
                             size="24"
