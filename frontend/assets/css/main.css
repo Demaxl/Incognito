@@ -1,14 +1,23 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-
-
-
 :root {
     /* --ui-primary: #00bfff; */
     --ui-primary: #46a6f8;
-  }
-  
+}
+
 @theme {
-  --font-sans: "Fredoka", sans-serif;
+    --font-sans: "Fredoka", sans-serif;
+    /* --color-primary-500: #46a6f8; */
+    --color-primary-50: #eff9ff;
+    --color-primary-100: #dbf0fe;
+    --color-primary-200: #bee5ff;
+    --color-primary-300: #92d6fe;
+    --color-primary-400: #5fbefb;
+    --color-primary-500: #46a6f8;
+    --color-primary-600: #2382ed;
+    --color-primary-700: #1b6bda;
+    --color-primary-800: #1d56b0;
+    --color-primary-900: #1d4c8b;
+    --color-primary-950: #172f54;
 }
