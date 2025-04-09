@@ -42,16 +42,18 @@
                 <UTabs
                     :items="tabItems"
                     size="lg"
+                    :content="false"
                     :ui="{ trigger: 'basis-[fit-content] px-3 py-1' }"
                 >
-                    <template #all="{ item }">
-                        <!-- <div class="flex items-center gap-2">
-                            <h3 class="text-xl font-semibold">All Messages</h3>
-                            <span class="text-gray-500">({messages.length})</span>
-                        </div> -->
-                    </template>
                 </UTabs>
                 <div class="text-sm text-gray-500">4 messages</div>
+            </div>
+            <div class="mt-4 space-y-4 block">
+                <MessageItem
+                    v-for="message in messages"
+                    :key="message.id"
+                    :message="message"
+                />
             </div>
         </div>
     </main>
@@ -72,7 +74,7 @@ const messages = [
         id: "2",
         type: "image",
         content: "Check out this beautiful sunset I captured yesterday!",
-        mediaUrl: "/placeholder.svg?height=300&width=400",
+        mediaUrl: "/images/placeholder.png",
         date: "Yesterday",
         read: true,
     },
@@ -88,7 +90,7 @@ const messages = [
         id: "4",
         type: "video",
         content: "This funny moment reminded me of you!",
-        mediaUrl: "/placeholder.svg?height=300&width=400",
+        mediaUrl: "/images/placeholder.png",
         date: "3 days ago",
         read: false,
     },
