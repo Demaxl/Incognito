@@ -30,7 +30,7 @@
                     class="px-3 py-2 font-medium"
                     size="xl"
                     to="/signup"
-                    label="Sign up"
+                    label="Create your inbox"
                 />
             </div>
         </div>
