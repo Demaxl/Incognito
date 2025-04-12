@@ -32,7 +32,7 @@ class TestMessageModels:
         with pytest.raises(ValidationError):
             TextMessage.objects.create(message=message, text="Hello")
 
-    def test_valid_message_media_type(self, message_factory):
+    def test_valid_message_media_type(self):
         """
         Test that the message media type is validated when saving the message
 
