@@ -24,11 +24,19 @@ from users import views as user_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
-
     path('accounts/set-csrf-cookie',
          user_views.login_set_cookie, name='set-csrf-cookie'),
 
+    path("api/", include("messages_api.urls")),
 
     # Include the API endpoints:
     path("_allauth/", include("allauth.headless.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+if settings.DEBUG:
+    import debug_toolbar
+
+    urlpatterns += [
+        path(r'__debug__', include(debug_toolbar.urls)),
+    ]

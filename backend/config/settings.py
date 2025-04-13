@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'messages_api',
-    "rest_framework"
+    "rest_framework",
+
+    'debug_toolbar'
 
 ]
 
@@ -62,6 +64,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     "allauth.account.middleware.AccountMiddleware",
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -149,3 +152,7 @@ MEDIA_URL = '/media/'
 
 # For local development
 MEDIA_URL_BASE = 'http://localhost:8000'
+
+INTERNAL_IPS = [
+    "127.0.0.1"
+]

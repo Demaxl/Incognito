@@ -12,7 +12,7 @@ def message_factory(db, user_factory):
             receiver=receiver, message_type=message_type)
         message.save()
 
-        message.content = content
+        message.set_content(content)
 
         return message
     return create_message

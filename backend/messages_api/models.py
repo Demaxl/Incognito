@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
+from typing import Union
 
 from .validators import validate_audio, validate_video
 
@@ -27,38 +29,41 @@ class Message(models.Model):
         return f"{self.receiver}: {self.content}"
 
     @property
-    def content(self):
+    def content(self) -> Union['TextMessage', 'ImageMessage', 'VideoMessage', 'AudioMessage']:
         """Returns the content object associated with this message's type."""
         return getattr(self, f"{self.message_type}_content")
 
-    @content.setter
-    def content(self, value):
+    def set_content(self, value, caption=None):
         """Creates the appropriate content object based on message type."""
         match self.message_type:
             case Message.TEXT:
                 TextMessage.objects.create(message=self, text=value)
             case Message.IMAGE:
                 ImageMessage.objects.create(
-                    message=self, image=value)
+                    message=self, image=value, text=caption)
             case Message.VIDEO:
                 VideoMessage.objects.create(
-                    message=self, video=value)
+                    message=self, video=value, text=caption)
             case Message.AUDIO:
                 AudioMessage.objects.create(
-                    message=self, audio=value)
+                    message=self, audio=value, text=caption)
 
     @classmethod
-    def related_objects(cls):
+    def related_objects(cls, operation: str = "read") -> QuerySet:
         """
-        Returns a queryset with all message content types prefetched.
+        Returns a queryset with all message content types prefetched when reading.
         This optimizes database queries when accessing message content.
         """
-        return cls.objects.prefetch_related(
-            'text_content',
-            'image_content',
-            'video_content',
-            'audio_content'
-        ).select_related('receiver')
+        queryset = cls.objects.select_related('receiver')
+        if operation == "read":
+            return queryset.prefetch_related(
+                'text_content',
+                'image_content',
+                'video_content',
+                'audio_content'
+            )
+
+        return queryset
 
 
 class MessageTypeAbstract(models.Model):

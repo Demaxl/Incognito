@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import Message, TextMessage, AudioMessage, VideoMessage, ImageMessage
 from django.conf import settings
+from django.db import transaction
+
+from .models import Message, TextMessage, AudioMessage, VideoMessage, ImageMessage
 
 
 class TextMessageSerializer(serializers.ModelSerializer):
@@ -35,12 +37,16 @@ class MessageSerializer(serializers.ModelSerializer):
     )
 
     content = serializers.SerializerMethodField()
-    text = serializers.CharField(source="content.text")
+    text = serializers.CharField(source="content.text", read_only=True)
+
+    # Media content fields for write
+    media_content = serializers.FileField(write_only=True, required=False)
+    text_content = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = Message
         fields = ['id', 'receiver',
-                  'message_type', 'timestamp', 'content', 'text']
+                  'message_type', 'timestamp', 'content', 'text', 'media_content', 'text_content']
 
     def get_content(self, obj):
         """
@@ -63,11 +69,29 @@ class MessageSerializer(serializers.ModelSerializer):
             return None
         return None
 
-    def create(self, validated_data):
-        content = self.context.get('content')
-        if not content:
-            raise serializers.ValidationError("Content is required")
+    def validate(self, attrs):
+        if attrs['message_type'] == Message.TEXT:
+            if 'text_content' not in attrs:
+                raise serializers.ValidationError(
+                    {"text_content": "Text content is required for text messages"})
+        else:
+            if 'media_content' not in attrs:
+                raise serializers.ValidationError(
+                    {"media_content": "Uploaded Media content is required"})
+        return attrs
 
-        message = Message.objects.create(**validated_data)
-        message.content = content  # This will use the content setter in the Message model
+    def create(self, validated_data):
+
+        media_content = validated_data.pop('media_content', None)
+        text_content = validated_data.pop('text_content', None)
+
+        # Use transaction to ensure atomicity in creating
+        # the message object and the related message type object
+        with transaction.atomic():
+            message = Message.objects.create(**validated_data)
+
+            content = text_content if validated_data['message_type'] == Message.TEXT \
+                else media_content
+            message.set_content(content, caption=text_content)
+
         return message
