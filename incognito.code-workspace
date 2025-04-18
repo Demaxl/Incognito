@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "frontend"
+		},
+		{
+			"path": "backend"
+		},
+		{
+			"path": "../Glare Chat App"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.css": "css"
+		},
+		"tailwindCSS.classAttributes": [
+			"class",
+			"ui",
+			"active-class",
+			"inactive-class"
+		],
+		"typescript.tsdk": "node_modules/typescript/lib"
+	}
+}

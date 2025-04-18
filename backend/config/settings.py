@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'corsheaders',
     'allauth',
     'allauth.account',
     'messages_api',
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -155,4 +157,17 @@ MEDIA_URL_BASE = 'http://localhost:8000'
 
 INTERNAL_IPS = [
     "127.0.0.1"
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # For local development
+]
+CORS_ALLOW_CREDENTIALS = True
+
+
+SESSION_COOKIE_DOMAIN = "localhost"
+CSRF_COOKIE_DOMAIN = "localhost"
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',  # For local development
 ]

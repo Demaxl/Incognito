@@ -18,20 +18,32 @@
 
             <!-- Desktop Buttons (always visible on sm and up) -->
             <div class="hidden sm:flex sm:flex-row sm:gap-4">
-                <UButton
-                    class="px-3 py-2 font-medium"
-                    color="neutral"
-                    variant="outline"
-                    size="xl"
-                    to="/login"
-                    label="Login"
-                />
-                <UButton
-                    class="px-3 py-2 font-medium"
-                    size="xl"
-                    to="/signup"
-                    label="Create your inbox"
-                />
+                <template v-if="!isAuthenticated">
+                    <UButton
+                        class="px-3 py-2 font-medium"
+                        color="neutral"
+                        variant="outline"
+                        size="xl"
+                        to="/login"
+                        label="Login"
+                    />
+                    <UButton
+                        class="px-3 py-2 font-medium"
+                        size="xl"
+                        to="/signup"
+                        label="Create your inbox"
+                    />
+                </template>
+                <template v-else>
+                    <UButton
+                        class="px-3 py-2 font-medium"
+                        color="neutral"
+                        variant="outline"
+                        size="xl"
+                        to="/logout"
+                        label="Logout"
+                    />
+                </template>
             </div>
         </div>
 
@@ -70,10 +82,10 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-
 const isMenuOpen = ref(false);
 const mobileMenu = ref(null);
+
+const isAuthenticated = computed(() => useAuthStore().userData !== null);
 
 // Custom height transition that respects document flow
 function startTransition(element) {
