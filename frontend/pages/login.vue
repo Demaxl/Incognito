@@ -99,6 +99,11 @@
                         size="lg"
                         class="w-full block text-center"
                         label="Login"
+                        :disabled="
+                            !meta.dirty ||
+                            !(meta.touched && meta.valid) ||
+                            isSubmitting
+                        "
                     />
 
                     <p class="text-center text-sm text-gray-500">
