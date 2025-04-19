@@ -171,3 +171,17 @@ CSRF_COOKIE_DOMAIN = "localhost"
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',  # For local development
 ]
+
+
+# Allauth settings
+ACCOUNT_CHANGE_EMAIL = True
+ACCOUNT_EMAIL_NOTIFICATIONS = True
+
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'email*', 'password1*']
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
