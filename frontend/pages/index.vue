@@ -24,7 +24,10 @@
                         to="/signup"
                         class="px-8 h-11"
                     >
-                        Create your inbox
+                        {{
+                            useAuthStore().isAuthenticated() ? "View" : "Create"
+                        }}
+                        your inbox
                     </UButton>
                     <UButton
                         variant="outline"

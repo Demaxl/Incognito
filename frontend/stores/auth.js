@@ -7,7 +7,7 @@ export const useAuthStore = defineStore(
         */
         const userData = ref(null);
 
-        async function isAuthenticated() {
+        async function hasSession() {
             try {
                 const response = await $axios.get(
                     "/_allauth/browser/v1/auth/session"
@@ -60,8 +60,12 @@ export const useAuthStore = defineStore(
                 return error.response;
             }
         }
+        function isAuthenticated() {
+            return userData.value !== null;
+        }
 
-        return { login, logout, signup, isAuthenticated, userData };
+        
+        return { login, logout, signup, hasSession, userData, isAuthenticated };
     },
     {
         persist: {

@@ -123,7 +123,7 @@ definePageMeta({
     middleware: [
         async function (to, from) {
             // If the user is authenticated, redirect to the home page
-            if (await useAuthStore().isAuthenticated()) {
+            if (await useAuthStore().hasSession()) {
                 return navigateTo("/");
             }
         },
@@ -149,7 +149,7 @@ async function onSubmit({ username, password }, { setErrors }) {
     switch (response.status) {
         case 200:
         case 409:
-            navigateTo("/");
+            navigateTo("/dashboard");
             break;
         case 400:
             setErrors({

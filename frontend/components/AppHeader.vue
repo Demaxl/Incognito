@@ -85,7 +85,7 @@
 const isMenuOpen = ref(false);
 const mobileMenu = ref(null);
 
-const isAuthenticated = computed(() => useAuthStore().userData !== null);
+const isAuthenticated = computed(() => useAuthStore().isAuthenticated());
 
 // Custom height transition that respects document flow
 function startTransition(element) {
