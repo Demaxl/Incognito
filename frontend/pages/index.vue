@@ -21,7 +21,11 @@
                     <UButton
                         size="xl"
                         trailing-icon="i-lucide-arrow-right"
-                        to="/signup"
+                        :to="
+                            useAuthStore().isAuthenticated()
+                                ? '/dashboard'
+                                : '/signup'
+                        "
                         class="px-8 h-11"
                     >
                         {{

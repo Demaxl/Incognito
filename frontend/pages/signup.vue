@@ -181,6 +181,16 @@
 </template>
 
 <script setup>
+definePageMeta({
+    middleware: [
+        async function (to, from) {
+            // If the user is authenticated, redirect to the home page
+            if (await useAuthStore().hasSession()) {
+                return navigateTo("/dashboard");
+            }
+        },
+    ],
+});
 const show = ref(false);
 
 import { object, string, ref as yupRef } from "yup";
@@ -215,7 +225,7 @@ async function onSubmit({ username, email, password }, { setFieldError }) {
 
     switch (response.status) {
         case 200:
-            navigateTo("/");
+            navigateTo("/dashboard");
             break;
         case 400:
             for (const error of response.data.errors) {

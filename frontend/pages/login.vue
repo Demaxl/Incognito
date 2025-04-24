@@ -124,7 +124,7 @@ definePageMeta({
         async function (to, from) {
             // If the user is authenticated, redirect to the home page
             if (await useAuthStore().hasSession()) {
-                return navigateTo("/");
+                return navigateTo("/dashboard");
             }
         },
     ],
