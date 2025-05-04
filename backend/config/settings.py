@@ -152,8 +152,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-# For local development
-MEDIA_URL_BASE = 'http://localhost:8000'
+# For local development, serving with nginx
+MEDIA_URL_BASE = 'http://localhost'
 
 INTERNAL_IPS = [
     "127.0.0.1"

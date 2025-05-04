@@ -54,7 +54,8 @@ class Message(models.Model):
         Returns a queryset with all message content types prefetched when reading.
         This optimizes database queries when accessing message content.
         """
-        queryset = cls.objects.select_related('receiver')
+        queryset = cls.objects.select_related(
+            'receiver').order_by('-timestamp')
         if operation == "read":
             return queryset.prefetch_related(
                 'text_content',

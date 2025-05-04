@@ -22,7 +22,10 @@
                 <div class="flex items-center gap-2 mt-6">
                     <UInput
                         readOnly
-                        value="https://incognito.app/message/username"
+                        :value="
+                            'https://incognito.app/message/' +
+                            useAuthStore().userData?.username
+                        "
                         class="text-sm w-full"
                         size="xl"
                     />
@@ -52,58 +55,29 @@
                 <MessageItem
                     v-for="message in messages"
                     :key="message.id"
-                    :message="message"
+                    v-bind="message"
                 />
             </div>
         </div>
     </main>
 </template>
 
-<script setup lang="ts">
-import type { TabsItem } from "@nuxt/ui";
-
-const messages = [
-    {
-        id: "1",
-        content: "You're doing amazing work! Keep it up!",
-        type: "text",
-        date: "2 hours ago",
-        read: true,
-    },
-    {
-        id: "2",
-        type: "image",
-        content: "Check out this beautiful sunset I captured yesterday!",
-        mediaUrl: "/images/placeholder.png",
-        date: "Yesterday",
-        read: true,
-    },
-    {
-        id: "3",
-        type: "audio",
-        content: "I recorded this voice message for you",
-        mediaUrl: "https://example.com/sample-audio.mp3",
-        date: "2 days ago",
-        read: false,
-    },
-    {
-        id: "4",
-        type: "video",
-        content: "This funny moment reminded me of you!",
-        mediaUrl: "/images/placeholder.png",
-        date: "3 days ago",
-        read: false,
-    },
-];
+<script setup>
+const messages = ref([]);
 
 const tabItems = [
     {
         label: "All Messages",
-        slot: "all" as const,
+        slot: "all",
     },
     {
         label: "Unread",
-        slot: "unread" as const,
+        slot: "unread",
     },
-] satisfies TabsItem[];
+];
+
+onMounted(async () => {
+    const { fetchMessages } = useMessagesAPI();
+    messages.value = await fetchMessages();
+});
 </script>

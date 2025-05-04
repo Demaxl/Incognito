@@ -57,16 +57,13 @@ class MessageSerializer(serializers.ModelSerializer):
             return serializer.data.get('text')
         elif obj.message_type == Message.AUDIO:
             serializer = AudioMessageSerializer(obj.audio_content)
-            return serializer.data.get('audio')
         elif obj.message_type == Message.VIDEO:
             serializer = VideoMessageSerializer(obj.video_content)
-            return serializer.data.get('video')
         elif obj.message_type == Message.IMAGE:
             serializer = ImageMessageSerializer(obj.image_content)
-            image_url = serializer.data.get('image')
-            if image_url:
-                return f"{settings.MEDIA_URL_BASE}{image_url}"
-            return None
+        content_url = serializer.data.get(obj.message_type)
+        if content_url:
+            return f"{settings.MEDIA_URL_BASE}{content_url}"
         return None
 
     def validate(self, attrs):
