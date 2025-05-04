@@ -49,22 +49,25 @@
                     :ui="{ trigger: 'basis-[fit-content] px-3 py-1' }"
                 >
                 </UTabs>
-                <div class="text-sm text-gray-500">4 messages</div>
+                <div class="text-sm text-gray-500">
+                    {{ messages.length }} messages
+                </div>
             </div>
             <div class="mt-4 space-y-4 block">
-                <MessageItem
-                    v-for="message in messages"
-                    :key="message.id"
-                    v-bind="message"
-                />
+                <TransitionGroup name="list">
+                    <MessageItem
+                        v-for="message in messages"
+                        :key="message.id"
+                        v-bind="message"
+                        @delete="removeMessageItem"
+                    />
+                </TransitionGroup>
             </div>
         </div>
     </main>
 </template>
 
 <script setup>
-const messages = ref([]);
-
 const tabItems = [
     {
         label: "All Messages",
@@ -76,8 +79,56 @@ const tabItems = [
     },
 ];
 
+const messages = ref([]);
+const toast = useToast();
+
+function removeMessageItem(message_props) {
+    const index = messages.value.findIndex(
+        (message) => message.id === message_props.id
+    );
+    let message_text = message_props.text;
+    messages.value.splice(index, 1);
+    toast.add({
+        title: "Message deleted",
+        description: `Successfully deleted message: ${message_text}`,
+        color: "primary",
+        actions: [
+            {
+                label: "Undo",
+                color: "primary",
+                icon: "material-symbols:undo",
+                variant: "outline",
+                onClick: () => {
+                    messages.value.splice(index, 0, message_props);
+                    // TODO: Add undo functionality. Send API response to server to undo deletion
+                },
+            },
+        ],
+    });
+}
+
 onMounted(async () => {
     const { fetchMessages } = useMessagesAPI();
     messages.value = await fetchMessages();
 });
 </script>
+
+<style>
+.list-move, /* apply transition to moving elements */
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-leave-active {
+    position: absolute;
+}
+</style>

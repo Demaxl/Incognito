@@ -13,10 +13,9 @@ class MessageViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Retr
     def get_permissions(self):
         # Anyone should be able to create messages
         # but only the receiver should be able to read and delete
-        permission_classes = [IsReceiver]
         if self.request.method == 'POST':
-            permission_classes = []
-        return [permission() for permission in permission_classes]
+            return []
+        return [IsReceiver()]
 
     @override
     def get_queryset(self):

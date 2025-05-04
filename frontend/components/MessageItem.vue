@@ -13,13 +13,16 @@
                     >New</UBadge
                 > -->
             </div>
-            <UButton
-                color="error"
-                variant="ghost"
-                icon="i-lucide-trash-2"
-                size="xs"
-                @click="$emit('delete', id)"
-            />
+            <UTooltip text="Delete message" :delay-duration="0">
+                <UButton
+                    color="error"
+                    variant="ghost"
+                    icon="i-lucide-trash-2"
+                    size="xs"
+                    class="cursor-pointer"
+                    @click="deleteMessageItem(props)"
+                />
+            </UTooltip>
         </div>
 
         <!-- Text message -->
@@ -152,6 +155,8 @@
 import { OnClickOutside } from "@vueuse/components";
 import { useMediaControls } from "@vueuse/core";
 
+const emit = defineEmits(["delete"]);
+
 const props = defineProps({
     message_type: String,
     content: String,
@@ -164,6 +169,26 @@ const isPlayingVideo = ref(false);
 const showImagePreview = ref(false);
 const videoRef = useTemplateRef("videoRef");
 const audioRef = useTemplateRef("audioRef");
+
+const messageTypeIcon = computed(() => {
+    const iconMap = {
+        image: "i-lucide-image",
+        video: "i-lucide-video",
+        audio: "i-lucide-volume-2",
+    };
+    return iconMap[props.message_type] || "i-lucide-message-square";
+});
+
+const {
+    playing: isPlayingAudio,
+    currentTime: currentAudioTime,
+    duration: audioDuration,
+} = useMediaControls(audioRef, {
+    src: {
+        src: props.content,
+        type: "audio/mpeg",
+    },
+});
 
 function playVideo() {
     if (videoRef.value) {
@@ -191,23 +216,31 @@ function formatTime(seconds) {
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
 }
 
-const messageTypeIcon = computed(() => {
-    const iconMap = {
-        image: "i-lucide-image",
-        video: "i-lucide-video",
-        audio: "i-lucide-volume-2",
-    };
-    return iconMap[props.message_type] || "i-lucide-message-square";
-});
-
-const {
-    playing: isPlayingAudio,
-    currentTime: currentAudioTime,
-    duration: audioDuration,
-} = useMediaControls(audioRef, {
-    src: {
-        src: props.content,
-        type: "audio/mpeg",
-    },
-});
+async function deleteMessageItem(props) {
+    const { deleteMessage } = useMessagesAPI();
+    try {
+        const status = await deleteMessage(props.id);
+        if (status === 204) {
+            emit("delete", props);
+        }
+    } catch (error) {
+        useToast().add({
+            title: "Error",
+            description: "Failed to delete message",
+            color: "error",
+            icon: "material-symbols:error",
+            actions: [
+                {
+                    label: "Retry",
+                    color: "error",
+                    icon: "material-symbols:refresh",
+                    variant: "outline",
+                    onClick: () => {
+                        deleteMessageItem(props);
+                    },
+                },
+            ],
+        });
+    }
+}
 </script>
