@@ -22,6 +22,7 @@ export default defineNuxtConfig({
     runtimeConfig: {
         public: {
             backendURL: "http://localhost:8000",
+            siteDomain: "http://localhost:3000",
         },
     },
 });

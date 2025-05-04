@@ -22,17 +22,16 @@
                 <div class="flex items-center gap-2 mt-6">
                     <UInput
                         readOnly
-                        :value="
-                            'https://incognito.app/message/' +
-                            useAuthStore().userData?.username
-                        "
+                        :value="linkValue"
                         class="text-sm w-full"
                         size="xl"
                     />
                     <UButton
                         variant="outline"
+                        class="cursor-pointer"
                         size="xl"
                         icon="material-symbols:content-copy-outline"
+                        @click="copyLinkToClipboard"
                     />
                     <UButton
                         variant="outline"
@@ -81,6 +80,33 @@ const tabItems = [
 
 const messages = ref([]);
 const toast = useToast();
+
+const {
+    public: { siteDomain },
+} = useRuntimeConfig();
+const linkValue = computed(() => {
+    return `${siteDomain}/message/${useAuthStore().userData?.username}`;
+});
+
+function copyLinkToClipboard() {
+    navigator.clipboard
+        .writeText(linkValue.value)
+        .then(() => {
+            toast.add({
+                title: "Link Copied",
+                description: "Your anonymous link has been copied to clipboard",
+                color: "primary",
+            });
+        })
+        .catch((err) => {
+            console.error("Failed to copy text: ", err);
+            toast.add({
+                title: "Copy Failed",
+                description: "Could not copy link to clipboard",
+                color: "error",
+            });
+        });
+}
 
 function removeMessageItem(message_props) {
     const index = messages.value.findIndex(

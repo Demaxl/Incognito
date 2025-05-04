@@ -76,4 +76,4 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 # TODO
 
--   Add message deletion
+-   Add message sending
