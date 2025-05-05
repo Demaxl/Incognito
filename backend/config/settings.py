@@ -69,6 +69,10 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'messages_api.validators.exception_handler',
+}
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 from typing import Union
 
-from .validators import validate_audio, validate_video
+from .validators import validate_audio, validate_video, validate_image
 
 
 class Message(models.Model):
@@ -135,7 +135,7 @@ class ImageMessage(MessageTypeAbstract):
     TYPE = Message.IMAGE
     message = models.OneToOneField(
         Message, on_delete=models.CASCADE, primary_key=True, related_name="image_content")
-    image = models.ImageField(upload_to="images/")
+    image = models.ImageField(upload_to="images/", validators=[validate_image])
 
     def __str__(self) -> str:
         return str(self.image)

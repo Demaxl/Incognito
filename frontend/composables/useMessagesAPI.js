@@ -21,8 +21,6 @@ export function useMessagesAPI() {
     const response = await post('/messages', data)
     return response.data
   }
-
-
   
   /**
    * Delete a message
@@ -34,7 +32,7 @@ export function useMessagesAPI() {
     return response.status
   }
 
-  
+
   return {
     fetchMessages,
     sendMessage,
