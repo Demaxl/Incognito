@@ -15,11 +15,11 @@ export function useMessagesAPI() {
   /**
    * Send (create) a new message
    * @param {Object} data
-   * @returns {Object}
+   * @returns {Number}
    */
   async function sendMessage(data) {
     const response = await post('/messages', data)
-    return response.data
+    return response.status
   }
   
   /**

@@ -77,3 +77,8 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 # TODO
 
 -   Add message sending
+-   add drag and drop for media
+-   Add seo and title tags
+-   Add button to refresh messages
+-   add notifications
+-   add size limit to media contents

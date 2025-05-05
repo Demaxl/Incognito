@@ -16,6 +16,7 @@
                 <form @submit.prevent="handleSubmit">
                     <UTabs
                         :items="tabs"
+                        v-model="activeTab"
                         class="w-full"
                         :ui="{ list: 'mb-2', label: 'hidden sm:inline' }"
                     >
@@ -24,7 +25,7 @@
                             <div class="space-y-4">
                                 <UTextarea
                                     class="block"
-                                    v-model="message"
+                                    v-model="text_message"
                                     placeholder="Type your anonymous message here..."
                                     :ui="{
                                         base: 'min-h-[150px] resize-none w-full block',
@@ -44,10 +45,7 @@
                                         class="relative w-full"
                                     >
                                         <img
-                                            :src="
-                                                mediaPreview ||
-                                                '/images/placeholder.png'
-                                            "
+                                            :src="mediaPreview"
                                             alt="Image preview"
                                             class="w-full h-auto rounded-md"
                                         />
@@ -89,7 +87,7 @@
                                     </template>
                                 </div>
                                 <UTextarea
-                                    v-model="message"
+                                    v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
                                     :ui="{
@@ -157,7 +155,7 @@
                                 </div>
 
                                 <UTextarea
-                                    v-model="message"
+                                    v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
                                     :ui="{
@@ -268,7 +266,7 @@
                                     </template>
                                 </div>
                                 <UTextarea
-                                    v-model="message"
+                                    v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
                                     :ui="{
@@ -289,17 +287,10 @@
                             type="submit"
                             :disabled="isSubmitDisabled"
                             :loading="isSending"
+                            :trailing-icon="isSending ? '' : 'lucide:send'"
+                            :label="isSending ? 'Sending' : 'Send'"
                             size="lg"
-                        >
-                            <template v-if="!isSending">
-                                Send
-                                <Icon
-                                    name="lucide:send"
-                                    class="ml-2"
-                                    size="16"
-                                />
-                            </template>
-                        </UButton>
+                        />
                     </div>
                 </form>
             </UCard>
@@ -308,81 +299,96 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { useRoute } from "vue-router";
-// import { useToast } from "@/composables/useToast";
-
-const useToast = () => {
-    return {
-        add: ({ title, description, color }) => {
-            // In a real app, this would use Nuxt UI's useToast or a similar system
-            console.log(`Toast: ${title} - ${description} (${color})`);
-        },
-    };
-};
-
 const route = useRoute();
 const username = route.params.username;
 const toast = useToast();
 
-const message = ref("");
+const text_message = ref("");
 const isSending = ref(false);
 const activeTab = ref("text");
 const isRecording = ref(false);
 const mediaPreview = ref(null);
+
+const mediaFile = ref(null);
 
 const tabs = [
     {
         label: "Text",
         icon: "i-lucide-message-square",
         slot: "text",
+        value: "text",
     },
     {
         label: "Image",
         icon: "i-lucide-image",
         slot: "image",
+        value: "image",
     },
     {
         label: "Video",
         icon: "i-lucide-video",
         slot: "video",
+        value: "video",
     },
     {
         label: "Audio",
         icon: "i-lucide-mic",
         slot: "audio",
+        value: "audio",
     },
 ];
 
 const isSubmitDisabled = computed(() => {
     if (isSending.value) return true;
-    if (activeTab.value === "text" && !message.value.trim()) return true;
+    if (activeTab.value === "text" && !text_message.value.trim()) return true;
     if (
         ["image", "video", "audio"].includes(activeTab.value) &&
         !mediaPreview.value
-    )
+    ) {
         return true;
+    }
     return false;
 });
 
-const handleSubmit = () => {
+async function handleSubmit() {
     if (isSubmitDisabled.value) return;
 
     isSending.value = true;
+    console.log(text_message.value);
+    console.log(mediaPreview.value);
+    console.log(mediaFile.value);
 
-    // Simulate sending message
-    setTimeout(() => {
+    const data = {
+        message_type: activeTab.value,
+        receiver: username,
+        text_content: text_message.value,
+        media_content: mediaFile.value,
+    };
+
+    const formData = new FormData();
+
+    for (const key in data) {
+        if (!!data[key]) {
+            formData.append(key, data[key]);
+        }
+    }
+
+    const { sendMessage } = useMessagesAPI();
+    const responseStatus = await sendMessage(formData);
+
+    if (responseStatus === 201) {
         isSending.value = false;
-        message.value = "";
+        text_message.value = "";
         mediaPreview.value = null;
+        mediaFile.value = null;
 
         toast.add({
             title: "Message sent!",
-            description: "Your anonymous message has been delivered.",
-            color: "green",
+            description: `Your anonymous message has been delivered to ${username}.`,
+            color: "success",
         });
-    }, 1000);
-};
+    }
+}
 
 const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -390,6 +396,7 @@ const handleFileChange = (e) => {
         // Create a preview URL for the selected file
         const url = URL.createObjectURL(file);
         mediaPreview.value = url;
+        mediaFile.value = file;
     }
 };
 
@@ -405,14 +412,14 @@ const toggleRecording = () => {
         toast.add({
             title: "Recording started",
             description: "Click the button again to stop recording.",
-            color: "blue",
+            color: "primary",
         });
     } else {
         mediaPreview.value = "/placeholder.svg?height=50&width=200";
         toast.add({
             title: "Recording stopped",
             description: "Your audio is ready to send.",
-            color: "green",
+            color: "success",
         });
     }
 };
