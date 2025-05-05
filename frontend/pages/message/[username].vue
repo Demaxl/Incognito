@@ -38,7 +38,14 @@
                             <!-- Image Message Tab -->
                             <div class="space-y-4 mt-4">
                                 <div
-                                    class="flex flex-col items-center gap-4 p-4 border-2 border-dashed border-gray-500/40 rounded-md"
+                                    ref="imageDropZoneRef"
+                                    class="flex flex-col items-center gap-4 p-4 border-2 border-dashed rounded-md"
+                                    :class="{
+                                        'border-gray-500/40':
+                                            !isOverImageDropZone,
+                                        'border-primary-500 bg-primary-50 dark:bg-primary-950':
+                                            isOverImageDropZone,
+                                    }"
                                 >
                                     <div
                                         v-if="mediaPreview"
@@ -54,7 +61,7 @@
                                             variant="solid"
                                             size="lg"
                                             class="absolute top-2 right-2"
-                                            @click="clearMediaPreview"
+                                            @click="clearMediaFile"
                                         >
                                             Change
                                         </UButton>
@@ -101,7 +108,14 @@
                             <!-- Video Message Tab -->
                             <div class="space-y-4 mt-4">
                                 <div
-                                    class="flex flex-col items-center gap-4 p-4 border-2 border-gray-500/40 border-dashed rounded-md"
+                                    ref="videoDropZoneRef"
+                                    class="flex flex-col items-center gap-4 p-4 border-2 border-dashed rounded-md"
+                                    :class="{
+                                        'border-gray-500/40':
+                                            !isOverVideoDropZone,
+                                        'border-primary-500 bg-primary-50 dark:bg-primary-950':
+                                            isOverVideoDropZone,
+                                    }"
                                 >
                                     <div
                                         v-if="mediaPreview"
@@ -121,7 +135,7 @@
                                             variant="solid"
                                             size="lg"
                                             class="absolute top-2 right-2"
-                                            @click="clearMediaPreview"
+                                            @click="clearMediaFile"
                                         >
                                             Change
                                         </UButton>
@@ -200,7 +214,7 @@
                                                 size="sm"
                                                 variant="outline"
                                                 class="h-8 w-8 p-0 rounded-full flex items-center justify-center"
-                                                @click="clearMediaPreview"
+                                                @click="clearMediaFile"
                                             >
                                                 <Icon
                                                     name="lucide:mic"
@@ -299,18 +313,9 @@
 </template>
 
 <script setup>
-const route = useRoute();
-const username = route.params.username;
-const toast = useToast();
+import { useDropZone } from "@vueuse/core";
 
-const text_message = ref("");
-const isSending = ref(false);
-const activeTab = ref("text");
-const isRecording = ref(false);
-const mediaPreview = ref(null);
-
-const mediaFile = ref(null);
-
+/* Constants */
 const tabs = [
     {
         label: "Text",
@@ -337,6 +342,19 @@ const tabs = [
         value: "audio",
     },
 ];
+const route = useRoute();
+const username = route.params.username;
+
+/* Refs */
+const text_message = ref("");
+const isSending = ref(false);
+const activeTab = ref("text");
+const isRecording = ref(false);
+const mediaPreview = ref(null);
+const mediaFile = ref(null);
+// Drop zone refs
+const imageDropZoneRef = useTemplateRef("imageDropZoneRef");
+const videoDropZoneRef = useTemplateRef("videoDropZoneRef");
 
 const isSubmitDisabled = computed(() => {
     if (isSending.value) return true;
@@ -350,13 +368,47 @@ const isSubmitDisabled = computed(() => {
     return false;
 });
 
+/* Composables */
+const toast = useToast();
+
+// Set up drop zones using useDropZone
+const { isOverDropZone: isOverImageDropZone } = useDropZone(imageDropZoneRef, {
+    onDrop: (files) => setMediaFile(files[0]),
+    dataTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+    multiple: false,
+});
+
+const { isOverDropZone: isOverVideoDropZone } = useDropZone(videoDropZoneRef, {
+    onDrop: (files) => setMediaFile(files[0]),
+    dataTypes: ["video/mp4", "video/webm", "video/ogg"],
+    multiple: false,
+});
+
+/* Functions */
+
+function setMediaFile(file) {
+    // Create a preview URL for the selected file
+    const url = URL.createObjectURL(file);
+    mediaPreview.value = url;
+    mediaFile.value = file;
+}
+
+const clearMediaFile = () => {
+    mediaPreview.value = null;
+    mediaFile.value = null;
+};
+
+const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+        setMediaFile(file);
+    }
+};
+
 async function handleSubmit() {
     if (isSubmitDisabled.value) return;
 
     isSending.value = true;
-    console.log(text_message.value);
-    console.log(mediaPreview.value);
-    console.log(mediaFile.value);
 
     const data = {
         message_type: activeTab.value,
@@ -379,8 +431,7 @@ async function handleSubmit() {
     if (responseStatus === 201) {
         isSending.value = false;
         text_message.value = "";
-        mediaPreview.value = null;
-        mediaFile.value = null;
+        clearMediaFile();
 
         toast.add({
             title: "Message sent!",
@@ -389,20 +440,6 @@ async function handleSubmit() {
         });
     }
 }
-
-const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-        // Create a preview URL for the selected file
-        const url = URL.createObjectURL(file);
-        mediaPreview.value = url;
-        mediaFile.value = file;
-    }
-};
-
-const clearMediaPreview = () => {
-    mediaPreview.value = null;
-};
 
 const toggleRecording = () => {
     isRecording.value = !isRecording.value;
