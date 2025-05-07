@@ -4,15 +4,18 @@
 
 <script setup>
 definePageMeta({
-    async middleware() {
-        await useAuthStore().logout();
+    middleware: [
+        "auth",
+        async () => {
+            await useAuthStore().logout();
 
-        // Clear sessionid from cookie
-        const sessionId = useCookie("sessionid");
-        sessionId.value = null;
+            // Clear sessionid from cookie
+            const sessionId = useCookie("sessionid");
+            sessionId.value = null;
 
-        // Redirect to the login page
-        return navigateTo("/login");
-    },
+            // Redirect to the login page
+            return navigateTo("/login");
+        },
+    ],
 });
 </script>

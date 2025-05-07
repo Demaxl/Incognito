@@ -120,14 +120,7 @@
 
 <script setup>
 definePageMeta({
-    middleware: [
-        async function (to, from) {
-            // If the user is authenticated, redirect to the home page
-            if (await useAuthStore().hasSession()) {
-                return navigateTo("/dashboard");
-            }
-        },
-    ],
+    middleware: ["no-auth"],
 });
 import { object, string } from "yup";
 
