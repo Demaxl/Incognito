@@ -394,6 +394,9 @@ function setMediaFile(file) {
 }
 
 const clearMediaFile = () => {
+    if (mediaPreview.value) {
+        URL.revokeObjectURL(mediaPreview.value);
+    }
     mediaPreview.value = null;
     mediaFile.value = null;
 };

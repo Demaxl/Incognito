@@ -19,6 +19,18 @@ export default defineNuxtPlugin((nuxtApp) => {
         return config;
     });
 
+    axiosInstance.interceptors.response.use(
+        (response) => response,
+        (error) => {
+            // Handle common errors (401, 403, 500, etc.)
+            if (error.response?.status === 401) {
+                // Handle unauthorized
+                useAuthStore().logout();
+            }
+            return Promise.reject(error);
+        }
+    );
+
     return {
         provide: {
             axios: axiosInstance,
