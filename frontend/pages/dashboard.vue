@@ -26,18 +26,23 @@
                         class="text-sm w-full"
                         size="xl"
                     />
-                    <UButton
-                        variant="outline"
-                        class="cursor-pointer"
-                        size="xl"
-                        icon="material-symbols:content-copy-outline"
-                        @click="copyLinkToClipboard"
-                    />
-                    <UButton
-                        variant="outline"
-                        size="xl"
-                        icon="material-symbols:share-outline"
-                    />
+                    <UTooltip text="Copy link" :delayDuration="0">
+                        <UButton
+                            variant="outline"
+                            class="cursor-pointer"
+                            size="xl"
+                            icon="material-symbols:content-copy-outline"
+                            @click="copyLinkToClipboard"
+                        />
+                    </UTooltip>
+                    <UTooltip text="Share link" :delayDuration="0">
+                        <UButton
+                            variant="outline"
+                            size="xl"
+                            icon="material-symbols:share-outline"
+                            @click="modal.open()"
+                        />
+                    </UTooltip>
                 </div>
             </UCard>
             <div class="flex items-center justify-between">
@@ -70,6 +75,8 @@
 definePageMeta({
     middleware: ["auth"],
 });
+import { ShareDialog } from "#components";
+
 const tabItems = [
     {
         label: "All Messages",
@@ -83,6 +90,7 @@ const tabItems = [
 
 const messages = ref([]);
 const toast = useToast();
+const overlay = useOverlay();
 
 const {
     public: { siteDomain },
@@ -91,24 +99,20 @@ const linkValue = computed(() => {
     return `${siteDomain}/message/${useAuthStore().userData?.username}`;
 });
 
+const modal = overlay.create(ShareDialog, {
+    props: {
+        shareUrl: linkValue,
+        title: "Share your anonymous link",
+    },
+});
+
+const { copyToClipboard } = useCopyToClipboard();
+
 function copyLinkToClipboard() {
-    navigator.clipboard
-        .writeText(linkValue.value)
-        .then(() => {
-            toast.add({
-                title: "Link Copied",
-                description: "Your anonymous link has been copied to clipboard",
-                color: "primary",
-            });
-        })
-        .catch((err) => {
-            console.error("Failed to copy text: ", err);
-            toast.add({
-                title: "Copy Failed",
-                description: "Could not copy link to clipboard",
-                color: "error",
-            });
-        });
+    copyToClipboard(linkValue.value, {
+        successTitle: "Link Copied",
+        successDescription: "Your anonymous link has been copied to clipboard"
+    });
 }
 
 function removeMessageItem(message_props) {
