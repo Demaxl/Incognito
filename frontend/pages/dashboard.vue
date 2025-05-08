@@ -75,7 +75,7 @@
 definePageMeta({
     middleware: ["auth"],
 });
-import { ShareDialog } from "#components";
+import { LinkShareDialog } from "#components";
 
 const tabItems = [
     {
@@ -99,7 +99,7 @@ const linkValue = computed(() => {
     return `${siteDomain}/message/${useAuthStore().userData?.username}`;
 });
 
-const modal = overlay.create(ShareDialog, {
+const modal = overlay.create(LinkShareDialog, {
     props: {
         shareUrl: linkValue,
         title: "Share your anonymous link",
@@ -111,7 +111,7 @@ const { copyToClipboard } = useCopyToClipboard();
 function copyLinkToClipboard() {
     copyToClipboard(linkValue.value, {
         successTitle: "Link Copied",
-        successDescription: "Your anonymous link has been copied to clipboard"
+        successDescription: "Your anonymous link has been copied to clipboard",
     });
 }
 

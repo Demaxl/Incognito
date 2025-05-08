@@ -42,91 +42,11 @@
                     </UTooltip>
                 </div>
                 <div class="grid grid-cols-4 gap-4 mb-4">
-                    <UButton
-                        color="neutral"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer bg-[#3b5998] items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaTwitter"
-                        aria-label="Share on Twitter"
-                    >
-                        <UIcon name="lucide:twitter" size="24" />
-                        <span class="text-sm hidden sm:block">Twitter</span>
-                    </UButton>
-                    <UButton
-                        color="neutral"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer bg-[#1877f2] items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaFacebook"
-                        aria-label="Share on Facebook"
-                    >
-                        <UIcon name="lucide:facebook" size="24" />
-                        <span class="text-sm hidden sm:block">Facebook</span>
-                    </UButton>
-                    <UButton
-                        color="neutral"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer bg-[#e4405f] items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaInstagram"
-                        aria-label="Share on Instagram"
-                    >
-                        <UIcon name="lucide:instagram" size="24" />
-                        <span class="text-sm hidden sm:block">Instagram</span>
-                    </UButton>
-                    <UButton
-                        color="success"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaWhatsApp"
-                        aria-label="Share on WhatsApp"
-                    >
-                        <UIcon name="ic:baseline-whatsapp" size="24" />
-                        <span class="text-sm hidden sm:block">WhatsApp</span>
-                    </UButton>
-                    <UButton
-                        color="neutral"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer bg-[#c4c237] hover:bg-[#FFFC08] items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaSnapchat"
-                        aria-label="Share on Snapchat"
-                    >
-                        <UIcon name="ic:outline-snapchat" size="24" />
-                        <span class="text-sm hidden sm:block">Snapchat</span>
-                    </UButton>
-                    <UButton
-                        color="neutral"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer bg-[#30ADED] items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaTelegram"
-                        aria-label="Share on Telegram"
-                    >
-                        <UIcon name="ic:baseline-telegram" size="24" />
-                        <span class="text-sm hidden sm:block">Telegram</span>
-                    </UButton>
-
-                    <UButton
-                        color="neutral"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer bg-[#0088cc] items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaEmail"
-                        aria-label="Share via Email"
-                    >
-                        <UIcon name="ic:baseline-email" size="24" />
-                        <span class="text-sm hidden sm:block">Email</span>
-                    </UButton>
-                    <UButton
-                        v-if="hasWebShareApi"
-                        color="neutral"
-                        variant="solid"
-                        class="flex flex-col cursor-pointer bg-[#0088cc] items-center justify-center gap-1 p-3 h-auto"
-                        @click="shareViaWebShare"
-                        aria-label="More sharing options"
-                    >
-                        <UIcon
-                            name="material-symbols:share-outline"
-                            size="24"
-                        />
-                        <span class="text-sm hidden sm:block">More</span>
-                    </UButton>
+                    <ShareButton
+                        v-for="button in shareButtons"
+                        v-bind="button"
+                        :key="button.label"
+                    />
                 </div>
                 <template #footer>
                     <div class="flex justify-start">
@@ -165,7 +85,6 @@ const toast = useToast();
 const hasWebShareApi = ref(false);
 // Check if Web Share API is available
 hasWebShareApi.value = !!(process.client && navigator.share);
-
 const shareMessage = `Send me anonymous messages on Incognito: ${props.shareUrl}`;
 
 const shareViaWebShare = async () => {
@@ -309,4 +228,58 @@ const shareViaTelegram = () => {
 const closeModal = () => {
     emit("close");
 };
+
+const shareButtons = [
+    {
+        icon: "lucide:twitter",
+        label: "Twitter",
+        bgColor: "#3b5998",
+        shareFunction: shareViaTwitter,
+    },
+    {
+        icon: "lucide:facebook",
+        label: "Facebook",
+        bgColor: "#1877f2",
+        shareFunction: shareViaFacebook,
+    },
+    {
+        icon: "lucide:instagram",
+        label: "Instagram",
+        bgColor: "#e4405f",
+        shareFunction: shareViaInstagram,
+    },
+    {
+        icon: "ic:baseline-whatsapp",
+        label: "WhatsApp",
+        color: "success",
+        shareFunction: shareViaWhatsApp,
+    },
+    {
+        icon: "ic:outline-snapchat",
+        label: "Snapchat",
+        bgColor: "#c4c237",
+        bgHoverColor: "#FFFC08",
+        shareFunction: shareViaSnapchat,
+    },
+    {
+        icon: "ic:baseline-telegram",
+        label: "Telegram",
+        bgColor: "#30ADED",
+        shareFunction: shareViaTelegram,
+    },
+    {
+        icon: "ic:baseline-email",
+        label: "Email",
+        bgColor: "#0088cc",
+        ariaLabel: "Share via Email",
+        shareFunction: shareViaEmail,
+    },
+    {
+        icon: "material-symbols:share-outline",
+        label: "More",
+        bgColor: "#0088cc",
+        ariaLabel: "More sharing options",
+        shareFunction: shareViaWebShare,
+    },
+];
 </script>
