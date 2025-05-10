@@ -55,6 +55,7 @@ const {
 });
 
 function formatTime(seconds) {
+    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return "-";
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = parseInt(seconds % 60);
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;

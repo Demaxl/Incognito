@@ -213,55 +213,122 @@
                                         </div>
                                     </div>
                                     <template v-else>
-                                        <Icon
-                                            name="lucide:mic"
-                                            class="h-10 w-10 text-primary-500"
-                                        />
-                                        <p
-                                            class="text-sm text-gray-500 text-center"
+                                        <div
+                                            class="w-full flex flex-col items-center"
                                         >
-                                            Record an audio message or upload a
-                                            file
-                                        </p>
-                                        <div class="flex gap-2">
-                                            <UButton
-                                                type="button"
-                                                :color="
-                                                    isRecording
-                                                        ? 'error'
-                                                        : 'primary'
-                                                "
-                                                :variant="
-                                                    isRecording
-                                                        ? 'solid'
-                                                        : 'outline'
-                                                "
-                                                @click="toggleRecording"
-                                                class="gap-2"
+                                            <div
+                                                v-if="isRecording"
+                                                class="flex flex-col items-center w-full"
+                                            >
+                                                <!-- Animated waveform -->
+                                                <div
+                                                    class="flex items-center justify-center w-full mb-2"
+                                                >
+                                                    <svg
+                                                        width="120"
+                                                        height="40"
+                                                        viewBox="0 0 120 40"
+                                                    >
+                                                        <rect
+                                                            v-for="i in 12"
+                                                            :key="i"
+                                                            :x="(i - 1) * 10"
+                                                            y="10"
+                                                            width="6"
+                                                            :height="20"
+                                                            class="fill-primary-500"
+                                                        >
+                                                            <animate
+                                                                attributeName="height"
+                                                                values="20;35;20"
+                                                                dur="0.8s"
+                                                                :begin="
+                                                                    (i - 1) *
+                                                                        0.07 +
+                                                                    's'
+                                                                "
+                                                                repeatCount="indefinite"
+                                                            />
+                                                            <animate
+                                                                attributeName="y"
+                                                                values="10;2;10"
+                                                                dur="0.8s"
+                                                                :begin="
+                                                                    (i - 1) *
+                                                                        0.07 +
+                                                                    's'
+                                                                "
+                                                                repeatCount="indefinite"
+                                                            />
+                                                        </rect>
+                                                    </svg>
+                                                </div>
+                                                <span
+                                                    class="text-primary-500 font-semibold"
+                                                    >Recording...</span
+                                                >
+                                            </div>
+                                            <div
+                                                v-else
+                                                class="flex flex-col items-center w-full"
                                             >
                                                 <Icon
                                                     name="lucide:mic"
-                                                    class="h-4 w-4"
+                                                    class="h-10 w-10 text-primary-500"
                                                 />
-                                                {{
-                                                    isRecording
-                                                        ? "Stop Recording"
-                                                        : "Record Audio"
-                                                }}
-                                            </UButton>
-                                            <UButton
-                                                type="button"
-                                                variant="outline"
-                                                class="relative"
-                                            >
-                                                Upload Audio
-                                                <input
-                                                    type="file"
-                                                    accept="audio/*"
-                                                    class="absolute inset-0 opacity-0 cursor-pointer"
-                                                    @change="handleFileChange"
-                                                />
-                                            </UButton>
+                                                <p
+                                                    class="text-sm text-gray-500 text-center"
+                                                >
+                                                    Record an audio message or
+                                                    upload a file
+                                                </p>
+                                            </div>
+                                            <div class="flex gap-2 mt-2">
+                                                <UButton
+                                                    type="button"
+                                                    :color="
+                                                        isRecording
+                                                            ? 'error'
+                                                            : 'primary'
+                                                    "
+                                                    :variant="
+                                                        isRecording
+                                                            ? 'solid'
+                                                            : 'outline'
+                                                    "
+                                                    @click="toggleRecording"
+                                                    class="gap-2"
+                                                >
+                                                    <Icon
+                                                        :name="
+                                                            isRecording
+                                                                ? 'material-symbols:stop'
+                                                                : 'lucide:mic'
+                                                        "
+                                                        class="h-4 w-4"
+                                                    />
+                                                    {{
+                                                        isRecording
+                                                            ? "Stop Recording"
+                                                            : "Record Audio"
+                                                    }}
+                                                </UButton>
+                                                <UButton
+                                                    type="button"
+                                                    variant="outline"
+                                                    class="relative"
+                                                >
+                                                    Upload Audio
+                                                    <input
+                                                        type="file"
+                                                        accept="audio/*"
+                                                        class="absolute inset-0 opacity-0 cursor-pointer"
+                                                        @change="
+                                                            handleFileChange
+                                                        "
+                                                    />
+                                                </UButton>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>
@@ -338,6 +405,8 @@ const activeTab = ref("text");
 const isRecording = ref(false);
 const mediaPreviewURL = ref(null);
 const mediaFile = ref(null);
+const mediaRecorder = ref(null);
+const audioChunks = ref([]);
 // Drop zone refs
 const imageDropZoneRef = useTemplateRef("imageDropZoneRef");
 const videoDropZoneRef = useTemplateRef("videoDropZoneRef");
@@ -379,20 +448,20 @@ function setMediaFile(file) {
     mediaFile.value = file;
 }
 
-const clearMediaFile = () => {
+function clearMediaFile() {
     if (mediaPreviewURL.value) {
         URL.revokeObjectURL(mediaPreviewURL.value);
     }
     mediaPreviewURL.value = null;
     mediaFile.value = null;
-};
+}
 
-const handleFileChange = (e) => {
+function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (file) {
         setMediaFile(file);
     }
-};
+}
 
 async function handleSubmit() {
     if (isSubmitDisabled.value) return;
@@ -430,23 +499,67 @@ async function handleSubmit() {
     }
 }
 
-const toggleRecording = () => {
-    isRecording.value = !isRecording.value;
+async function toggleRecording() {
+    if (!isRecording.value) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+            });
+            mediaRecorder.value = new MediaRecorder(stream);
+            audioChunks.value = [];
 
-    // Simulate recording for demonstration
-    if (isRecording.value) {
-        toast.add({
-            title: "Recording started",
-            description: "Click the button again to stop recording.",
-            color: "primary",
-        });
+            mediaRecorder.value.ondataavailable = (event) => {
+                audioChunks.value.push(event.data);
+            };
+
+            mediaRecorder.value.onstop = () => {
+                const audioBlob = new Blob(audioChunks.value, {
+                    type: "audio/mpeg",
+                });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                mediaPreviewURL.value = audioUrl;
+
+                // Convert blob to File object
+                const audioFile = new File(
+                    [audioBlob],
+                    `audio-recording-${Date.now()}.mp3`,
+                    {
+                        type: "audio/mpeg",
+                        lastModified: Date.now(),
+                    }
+                );
+                mediaFile.value = audioFile;
+
+                // Stop all audio tracks
+                stream.getTracks().forEach((track) => track.stop());
+            };
+
+            mediaRecorder.value.start();
+            isRecording.value = true;
+        } catch (error) {
+            console.error("Error accessing microphone:", error);
+            toast.add({
+                title: "Error",
+                description:
+                    "Could not access microphone. Please check your permissions.",
+                color: "error",
+            });
+        }
     } else {
-        mediaPreviewURL.value = "/placeholder.svg?height=50&width=200";
-        toast.add({
-            title: "Recording stopped",
-            description: "Your audio is ready to send.",
-            color: "success",
-        });
+        if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
+            mediaRecorder.value.stop();
+            isRecording.value = false;
+        }
     }
-};
+}
+
+// Clean up media recorder when component is unmounted
+onBeforeUnmount(() => {
+    if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
+        mediaRecorder.value.stop();
+    }
+    if (mediaPreviewURL.value) {
+        URL.revokeObjectURL(mediaPreviewURL.value);
+    }
+});
 </script>
