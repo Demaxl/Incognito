@@ -116,37 +116,7 @@
         <!-- Audio message -->
         <div v-else-if="message_type === 'audio'" class="space-y-2">
             <p class="text-sm">{{ text }}</p>
-            <div
-                class="bg-gray-100 dark:bg-gray-800 rounded-md p-3 flex items-center gap-3 border"
-            >
-                <audio ref="audioRef" preload="metadata"></audio>
-
-                <UTooltip
-                    :delay-duration="0"
-                    :text="isPlayingAudio ? 'Pause' : 'Play'"
-                >
-                    <UButton
-                        :icon="isPlayingAudio ? 'lucide:pause' : 'lucide:play'"
-                        size="md"
-                        color="primary"
-                        :variant="isPlayingAudio ? 'solid' : 'ghost'"
-                        :ui="{ base: 'rounded-full cursor-pointer' }"
-                        @click="isPlayingAudio = !isPlayingAudio"
-                    />
-                </UTooltip>
-                <span class="text-xs text-gray-500">{{
-                    formatTime(currentAudioTime)
-                }}</span>
-                <USlider
-                    size="xs"
-                    class="cursor-grabbing"
-                    v-model="currentAudioTime"
-                    :max="audioDuration"
-                />
-                <span class="text-xs text-gray-500">{{
-                    formatTime(audioDuration)
-                }}</span>
-            </div>
+            <AudioPlayer :src="content" />
         </div>
     </UCard>
 </template>
@@ -168,7 +138,6 @@ const props = defineProps({
 const isPlayingVideo = ref(false);
 const showImagePreview = ref(false);
 const videoRef = useTemplateRef("videoRef");
-const audioRef = useTemplateRef("audioRef");
 
 const messageTypeIcon = computed(() => {
     const iconMap = {
@@ -177,17 +146,6 @@ const messageTypeIcon = computed(() => {
         audio: "i-lucide-volume-2",
     };
     return iconMap[props.message_type] || "i-lucide-message-square";
-});
-
-const {
-    playing: isPlayingAudio,
-    currentTime: currentAudioTime,
-    duration: audioDuration,
-} = useMediaControls(audioRef, {
-    src: {
-        src: props.content,
-        type: "audio/mpeg",
-    },
 });
 
 function playVideo() {
@@ -208,12 +166,6 @@ function timeAgo(timestamp) {
     if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
     const days = Math.floor(hours / 24);
     return `${days} day${days !== 1 ? "s" : ""} ago`;
-}
-
-function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = parseInt(seconds % 60);
-    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
 }
 
 async function deleteMessageItem(props) {

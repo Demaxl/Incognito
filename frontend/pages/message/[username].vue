@@ -20,7 +20,7 @@
                         class="w-full"
                         :ui="{ list: 'mb-2', label: 'hidden sm:inline' }"
                     >
-                        <template #text="{ selectedId }">
+                        <template #text>
                             <!-- Text Message Tab -->
                             <div class="space-y-4">
                                 <UTextarea
@@ -34,7 +34,7 @@
                                 />
                             </div>
                         </template>
-                        <template #image="{ selectedId }">
+                        <template #image>
                             <!-- Image Message Tab -->
                             <div class="space-y-4 mt-4">
                                 <div
@@ -48,11 +48,11 @@
                                     }"
                                 >
                                     <div
-                                        v-if="mediaPreview"
+                                        v-if="mediaPreviewURL"
                                         class="relative w-full"
                                     >
                                         <img
-                                            :src="mediaPreview"
+                                            :src="mediaPreviewURL"
                                             alt="Image preview"
                                             class="w-full h-auto rounded-md"
                                         />
@@ -104,7 +104,7 @@
                                 />
                             </div>
                         </template>
-                        <template #video="{ selectedId }">
+                        <template #video>
                             <!-- Video Message Tab -->
                             <div class="space-y-4 mt-4">
                                 <div
@@ -118,14 +118,14 @@
                                     }"
                                 >
                                     <div
-                                        v-if="mediaPreview"
+                                        v-if="mediaPreviewURL"
                                         class="relative w-full"
                                     >
                                         <div
                                             class="bg-black/10 rounded-md flex items-center justify-center h-[200px]"
                                         >
                                             <video
-                                                :src="mediaPreview"
+                                                :src="mediaPreviewURL"
                                                 class="max-w-full max-h-full"
                                                 controls
                                             />
@@ -179,51 +179,37 @@
                                 />
                             </div>
                         </template>
-                        <template #audio="{ selectedId }">
+                        <template #audio>
                             <!-- Audio Message Tab -->
                             <div class="space-y-4 mt-4">
                                 <div
                                     class="flex flex-col items-center gap-4 p-4 border-2 border-gray-500/40 border-dashed rounded-md"
                                 >
-                                    <div v-if="mediaPreview" class="w-full">
-                                        <div
-                                            class="bg-gray-100rounded-md p-3 flex items-center gap-3"
-                                        >
-                                            <div
-                                                class="bg-primary-500/10 rounded-full p-2 flex items-center justify-center"
-                                            >
-                                                <Icon
-                                                    name="lucide:mic"
-                                                    class="h-4 w-4 text-primary-500"
-                                                />
-                                            </div>
-                                            <div class="flex-1">
-                                                <div
-                                                    class="h-2 rounded-full bg-gray-200 overflow-hidden"
-                                                >
-                                                    <div
-                                                        class="h-full w-full bg-primary rounded-full"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <span class="text-xs text-gray-500"
-                                                >0:12</span
-                                            >
-                                            <UButton
-                                                type="button"
-                                                size="sm"
-                                                variant="outline"
-                                                class="h-8 w-8 p-0 rounded-full flex items-center justify-center"
-                                                @click="clearMediaFile"
-                                            >
-                                                <Icon
-                                                    name="lucide:mic"
-                                                    class="h-4 w-4"
-                                                />
-                                                <span class="sr-only"
-                                                    >Re-record</span
-                                                >
-                                            </UButton>
+                                    <div v-if="mediaPreviewURL" class="w-full">
+                                        <div class="flex items-center gap-3">
+                                            <AudioPlayer :src="mediaPreviewURL">
+                                                <template #audio-player-actions>
+                                                    <UTooltip
+                                                        text="Delete audio"
+                                                        :delay="0"
+                                                    >
+                                                        <UButton
+                                                            type="button"
+                                                            size="sm"
+                                                            icon="lucide:trash-2"
+                                                            class="cursor-pointer"
+                                                            @click="
+                                                                clearMediaFile
+                                                            "
+                                                        >
+                                                            <span
+                                                                class="sr-only"
+                                                                >Re-record</span
+                                                            >
+                                                        </UButton>
+                                                    </UTooltip>
+                                                </template>
+                                            </AudioPlayer>
                                         </div>
                                     </div>
                                     <template v-else>
@@ -350,7 +336,7 @@ const text_message = ref("");
 const isSending = ref(false);
 const activeTab = ref("text");
 const isRecording = ref(false);
-const mediaPreview = ref(null);
+const mediaPreviewURL = ref(null);
 const mediaFile = ref(null);
 // Drop zone refs
 const imageDropZoneRef = useTemplateRef("imageDropZoneRef");
@@ -361,7 +347,7 @@ const isSubmitDisabled = computed(() => {
     if (activeTab.value === "text" && !text_message.value.trim()) return true;
     if (
         ["image", "video", "audio"].includes(activeTab.value) &&
-        !mediaPreview.value
+        !mediaPreviewURL.value
     ) {
         return true;
     }
@@ -389,15 +375,15 @@ const { isOverDropZone: isOverVideoDropZone } = useDropZone(videoDropZoneRef, {
 function setMediaFile(file) {
     // Create a preview URL for the selected file
     const url = URL.createObjectURL(file);
-    mediaPreview.value = url;
+    mediaPreviewURL.value = url;
     mediaFile.value = file;
 }
 
 const clearMediaFile = () => {
-    if (mediaPreview.value) {
-        URL.revokeObjectURL(mediaPreview.value);
+    if (mediaPreviewURL.value) {
+        URL.revokeObjectURL(mediaPreviewURL.value);
     }
-    mediaPreview.value = null;
+    mediaPreviewURL.value = null;
     mediaFile.value = null;
 };
 
@@ -455,7 +441,7 @@ const toggleRecording = () => {
             color: "primary",
         });
     } else {
-        mediaPreview.value = "/placeholder.svg?height=50&width=200";
+        mediaPreviewURL.value = "/placeholder.svg?height=50&width=200";
         toast.add({
             title: "Recording stopped",
             description: "Your audio is ready to send.",
