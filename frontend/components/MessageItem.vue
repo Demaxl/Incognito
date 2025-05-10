@@ -9,20 +9,32 @@
                 <div class="text-sm text-gray-500">
                     {{ timeAgo(timestamp) }}
                 </div>
-                <!-- <UBadge v-if="!read" color="primary" size="xs" class="ml-2"
+                <!-- <UBadge v-if="!read" colo  r="primary" size="xs" class="ml-2"
                     >New</UBadge
                 > -->
             </div>
-            <UTooltip text="Delete message" :delay-duration="0">
-                <UButton
-                    color="error"
-                    variant="ghost"
-                    icon="i-lucide-trash-2"
-                    size="xs"
-                    class="cursor-pointer"
-                    @click="deleteMessageItem(props)"
-                />
-            </UTooltip>
+            <div class="flex items-center gap-1">
+                <UTooltip text="Share message" :delay-duration="0">
+                    <UButton
+                        color="primary"
+                        variant="ghost"
+                        icon="material-symbols:share-outline"
+                        size="sm"
+                        class="cursor-pointer"
+                        @click="shareMessageModal.open()"
+                    />
+                </UTooltip>
+                <UTooltip text="Delete message" :delay-duration="0">
+                    <UButton
+                        color="error"
+                        variant="ghost"
+                        icon="i-lucide-trash-2"
+                        size="sm"
+                        class="cursor-pointer"
+                        @click="deleteMessageItem(props)"
+                    />
+                </UTooltip>
+            </div>
         </div>
 
         <!-- Text message -->
@@ -123,7 +135,7 @@
 
 <script setup>
 import { OnClickOutside } from "@vueuse/components";
-import { useMediaControls } from "@vueuse/core";
+import { MessageShareDialog } from "#components";
 
 const emit = defineEmits(["delete"]);
 
@@ -146,6 +158,14 @@ const messageTypeIcon = computed(() => {
         audio: "i-lucide-volume-2",
     };
     return iconMap[props.message_type] || "i-lucide-message-square";
+});
+
+const overlay = useOverlay();
+const shareMessageModal = overlay.create(MessageShareDialog, {
+    props: {
+        messages: [props],
+        username: useAuthStore().userData.username,
+    },
 });
 
 function playVideo() {
