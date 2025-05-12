@@ -26,12 +26,17 @@
                                 <UTextarea
                                     class="block"
                                     v-model="text_message"
+                                    :maxlength="maxLength"
                                     placeholder="Type your anonymous message here..."
                                     :ui="{
                                         base: 'min-h-[150px] resize-none w-full block',
                                     }"
                                     autoresize
                                 />
+                                <p class="text-xs text-gray-500 text-right">
+                                    {{ text_message.length }}/{{ maxLength }}
+                                    characters
+                                </p>
                             </div>
                         </template>
                         <template #image>
@@ -102,6 +107,10 @@
                                     }"
                                     autoresize
                                 />
+                                <p class="text-xs text-gray-500 text-right">
+                                    {{ text_message.length }}/{{ maxLength }}
+                                    characters
+                                </p>
                             </div>
                         </template>
                         <template #video>
@@ -177,6 +186,10 @@
                                     }"
                                     autoresize
                                 />
+                                <p class="text-xs text-gray-500 text-right">
+                                    {{ text_message.length }}/{{ maxLength }}
+                                    characters
+                                </p>
                             </div>
                         </template>
                         <template #audio>
@@ -341,6 +354,10 @@
                                     }"
                                     autoresize
                                 />
+                                <p class="text-xs text-gray-500 text-right">
+                                    {{ text_message.length }}/{{ maxLength }}
+                                    characters
+                                </p>
                             </div>
                         </template>
                     </UTabs>
@@ -369,6 +386,7 @@
 import { useDropZone } from "@vueuse/core";
 
 /* Constants */
+const maxLength = 255;
 const tabs = [
     {
         label: "Text",

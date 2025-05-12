@@ -71,7 +71,7 @@ class MessageTypeAbstract(models.Model):
     """Base abstract model for all message content types."""
 
     # Every type of message can have an optional text content
-    text = models.TextField(blank=True, null=True)
+    text = models.TextField(blank=True, null=True, max_length=255)
 
     class Meta:
         abstract = True
