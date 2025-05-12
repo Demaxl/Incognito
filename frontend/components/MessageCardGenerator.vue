@@ -1,116 +1,88 @@
 <template>
     <div
         ref="cardContainer"
-        class="w-72 bg-gradient-to-b from-violet-500 to-purple-700 rounded-lg p-4 text-white"
+        style="
+            position: absolute;
+            left: -99999px;
+            top: 0;
+            width: 1080px;
+            height: 1920px;
+        "
+        class="rounded-lg bg-gradient-to-r relative py-[200px] to-primary-500 from-[rgb(0,255,143)] p-6 text-white flex flex-col"
     >
-        <div class="flex justify-between items-center mb-3">
-            <div class="flex items-center gap-2">
-                <div
-                    class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
-                >
-                    <UIcon name="i-heroicons-user" class="h-5 w-5" />
-                </div>
-                <span class="font-medium">{{ username }}</span>
-            </div>
-            <div class="text-xs opacity-75">Incognito</div>
+        <!-- <div
+        ref="cardContainer"
+        class="rounded-lg bg-gradient-to-r relative to-primary-500 from-[rgb(0,255,143)] p-6 text-white flex flex-col"
+        style="width: 350px; height: 500px"
+    > -->
+        <!-- Visual effects -->
+        <div class="absolute top-0 left-0 opacity-50">
+            <LucideQuote />
         </div>
+        <div class="absolute bottom-0 right-0 opacity-50 rotate-180">
+            <LucideQuote />
+        </div>
+        <div
+            class="absolute top-12 right-12 w-20 h-20 rounded-full bg-white/30"
+        ></div>
+        <div
+            class="absolute bottom-12 left-12 w-32 h-32 rounded-full bg-white/30"
+        ></div>
 
-        <div class="mb-4 py-2">
-            <p v-if="message.type === 'text'" class="text-sm">
-                {{ message.content }}
+        <!-- Message -->
+        <div class="flex-1 flex items-center p-4 justify-center">
+            <p class="text-center text-6xl font-light leading-relaxed">
+                {{ message.text }}
             </p>
-            <div
-                v-else-if="['image', 'video', 'audio'].includes(message.type)"
-                class="space-y-2"
-            >
-                <p class="text-sm">{{ message.content }}</p>
-                <div
-                    v-if="message.mediaUrl"
-                    class="mt-2 rounded bg-white/10 p-2 flex items-center justify-center"
-                >
-                    <img
-                        v-if="message.type === 'image'"
-                        :src="message.mediaUrl"
-                        alt="Shared media"
-                        class="max-h-32 rounded"
-                    />
-                    <div
-                        v-else-if="message.type === 'video'"
-                        class="w-full aspect-video bg-black/20 rounded flex items-center justify-center"
-                    >
-                        <UIcon name="i-heroicons-play" class="h-8 w-8" />
-                    </div>
-                    <div
-                        v-else-if="message.type === 'audio'"
-                        class="w-full h-12 bg-black/20 rounded flex items-center justify-center"
-                    >
-                        <UIcon
-                            name="i-heroicons-musical-note"
-                            class="h-6 w-6"
-                        />
-                    </div>
-                </div>
-            </div>
         </div>
-
-        <div class="flex justify-between items-center text-xs opacity-75">
-            <span>{{ formattedDate }}</span>
-            <div class="flex items-center gap-1">
-                <UIcon name="i-heroicons-lock-closed" class="h-3 w-3" />
-                <span>Anonymous</span>
+        <div class="mt-auto pt-6">
+            <div class="w-[50%] h-1 bg-white/90 mx-auto mb-4"></div>
+            <p class="text-center text-6xl font-light">@{{ username }}</p>
+        </div>
+        <div class="mt-40 flex flex-col items-center">
+            <div
+                class="mb-2 bg-white/30 rounded-full p-6 flex items-center justify-center"
+            >
+                <img
+                    src="/images/logo_icon_colored.png"
+                    alt="Incognito logo"
+                    class="w-[200px] h-[200px]"
+                />
             </div>
+            <!-- <UIcon name="i-custom-logo-text" size="40px" class="text-white" /> -->
+            <p class="text-5xl font-bold tracking-wider">#INCOGNITO</p>
+            <!-- <UIcon name="i-custom-logo" size="40" /> -->
         </div>
     </div>
 </template>
 
 <script setup>
 import { onMounted } from "vue";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 const props = defineProps({
     message: {
         type: Object,
         required: true,
-        // validator: (val) =>
-        //     typeof val.id === "string" &&
-        //     typeof val.content === "string" &&
-        //     ["text", "image", "video", "audio"].includes(val.type),
-    },
-    username: {
-        type: String,
-        required: true,
     },
 });
 
+const username = useAuthStore().userData.username;
 const emit = defineEmits(["generated"]);
-const cardContainer = ref(null);
-
-const formattedDate = computed(() => {
-    const now = new Date();
-    return now.toLocaleString("default", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-});
+const cardContainer = useTemplateRef("cardContainer");
 
 onMounted(() => {
-    // Wait a moment for rendering before generating image
-    setTimeout(() => {
-        if (cardContainer.value) {
-            html2canvas(cardContainer.value).then((canvas) => {
-                const dataUrl = canvas.toDataURL("image/png");
-                emit("generated", dataUrl);
-            });
-        }
-    }, 300);
+    if (cardContainer.value) {
+        html2canvas(cardContainer.value, {
+            scale: 1,
+            width: 1080,
+            height: 1920,
+            useCORS: true,
+            // logging: false,
+        }).then((canvas) => {
+            const dataUrl = canvas.toDataURL("image/png");
+            emit("generated", dataUrl);
+        });
+    }
 });
-</script>
-
-<script>
-// This ensures html2canvas is imported only on client-side
-export default {
-    name: "MessageCardGenerator",
-};
 </script>

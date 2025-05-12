@@ -164,7 +164,6 @@ const overlay = useOverlay();
 const shareMessageModal = overlay.create(MessageShareDialog, {
     props: {
         messages: [props],
-        username: useAuthStore().userData.username,
     },
 });
 

@@ -76,6 +76,7 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 # TODO
 
+-   New message badge
 -   Add seo and title tags
 -   Add button to refresh messages
 -   add notifications

@@ -1,5 +1,5 @@
 <template>
-    <UModal>
+    <UModal class="overflow-y-scroll">
         <template #content>
             <UCard :ui="{ root: 'divide-none' }">
                 <template #header>
@@ -13,19 +13,25 @@
                         </p>
                     </div>
                 </template>
-                <UTabs :items="tabs">
+                <UTabs
+                    :items="tabs"
+                    :ui="{
+                        trigger: 'cursor-pointer',
+                    }"
+                >
                     <template #preview>
                         <!-- Preview Tab Content -->
-                        <div class="space-y-4">
-                            <div class="flex flex-col items-center gap-6">
+                        <div class="space-y-4 mt-2 relative h-max">
+                            <div
+                                v-if="Object.keys(generatedImages).length === 0"
+                                class="flex flex-col items-center gap-6"
+                            >
                                 <div
                                     v-for="message in messages"
                                     :key="message.id"
-                                    class="relative"
                                 >
-                                    <!-- <MessageCardGenerator
+                                    <MessageCardGenerator
                                         :message="message"
-                                        :username="username"
                                         @generated="
                                             (dataUrl) =>
                                                 handleImageGenerated(
@@ -33,10 +39,10 @@
                                                     dataUrl
                                                 )
                                         "
-                                    /> -->
+                                    />
                                     <div
                                         v-if="isGenerating"
-                                        class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg"
+                                        class="w-full flex items-center justify-center"
                                     >
                                         <UIcon
                                             name="i-heroicons-arrow-path"
@@ -45,6 +51,27 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- <div v-else> -->
+                            <TransitionGroup
+                                enter-active-class="animate__animated animate__zoomIn animate__faster"
+                                leave-active-class="animate__animated animate__zoomOut animate__faster"
+                            >
+                                <div
+                                    v-for="generatedImage in Object.values(
+                                        generatedImages
+                                    )"
+                                    :key="generatedImage"
+                                    class="flex justify-center"
+                                >
+                                    <img
+                                        style="width: auto; height: 400px"
+                                        :src="generatedImage"
+                                        alt="Generated Message"
+                                    />
+                                </div>
+                            </TransitionGroup>
+                            <!-- </div> -->
                         </div>
                     </template>
                     <template #share>
@@ -144,7 +171,12 @@
                 </UTabs>
                 <template #footer>
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <UButton type="button" variant="secondary">
+                        <UButton
+                            type="button"
+                            variant="outline"
+                            class="cursor-pointer"
+                            @click="emit('close')"
+                        >
                             Close
                         </UButton>
                     </div>
@@ -159,11 +191,10 @@ const props = defineProps({
     messages: {
         type: Array,
     },
-    username: {
-        type: String,
-        required: true,
-    },
 });
+
+const emit = defineEmits(["close"]);
+const username = useAuthStore().userData.username;
 
 // Stores generated image data URLs by message ID
 const generatedImages = ref({});
