@@ -24,8 +24,9 @@ export default defineNuxtPlugin((nuxtApp) => {
         (error) => {
             // Handle common errors (401, 403, 500, etc.)
             if (error.response?.status === 401) {
-                // Handle unauthorized
-                useAuthStore().logout();
+                if (error.config.url !== "/_allauth/browser/v1/auth/session") {
+                    useAuthStore().logout();
+                }
             }
             return Promise.reject(error);
         }
