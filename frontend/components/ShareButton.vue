@@ -2,10 +2,19 @@
     <UButton
         :color="color"
         :variant="variant"
-        class="flex flex-col cursor-pointer items-center justify-center gap-1 p-3 h-auto"
-        :class="bgColor ? `bg-[${bgColor}]` : ''"
+        :ui="{
+            base: 'hover:!bg-inverted/90',
+        }"
+        class="flex flex-col cursor-pointer text-white items-center justify-center gap-1 p-3 h-auto"
         :aria-label="ariaLabel"
         @click="shareFunction"
+        :style="
+            bgColor
+                ? {
+                      backgroundColor: bgColor,
+                  }
+                : {}
+        "
     >
         <UIcon :name="icon" size="24" />
         <span class="text-sm hidden sm:block">{{ label }}</span>

@@ -85,86 +85,33 @@
                                 <h3 class="font-medium mb-3 truncate">
                                     {{ message.text }}
                                 </h3>
-                                <div class="grid grid-cols-4 gap-3 mb-4">
+
+                                <div class="space-y-4">
                                     <UButton
-                                        variant="outline"
-                                        class="flex flex-col items-center justify-center gap-1 p-3 h-auto"
+                                        label="Share Message"
+                                        icon="material-symbols:share-outline"
+                                        class="w-full gap-2 flex justify-center py-3 cursor-pointer"
                                         @click="
-                                            shareToSocialMedia(
-                                                'twitter',
-                                                message.id
-                                            )
+                                            () =>
+                                                shareToSocialMedia(
+                                                    'more',
+                                                    message.id
+                                                )
                                         "
                                         :disabled="isGenerating"
                                     >
-                                        <UIcon
-                                            name="i-simple-icons-twitter"
-                                            class="h-5 w-5 text-[#1DA1F2]"
-                                        />
-                                        <span class="text-xs">Twitter</span>
                                     </UButton>
                                     <UButton
-                                        variant="outline"
-                                        class="flex flex-col items-center justify-center gap-1 p-3 h-auto"
-                                        @click="
-                                            shareToSocialMedia(
-                                                'facebook',
-                                                message.id
-                                            )
-                                        "
+                                        variant="soft"
+                                        color="neutral"
+                                        label="Download Image"
+                                        icon="i-heroicons-arrow-down-tray"
+                                        class="w-full gap-2 flex justify-center py-3 cursor-pointer"
+                                        @click="() => downloadImage(message.id)"
                                         :disabled="isGenerating"
                                     >
-                                        <UIcon
-                                            name="i-simple-icons-facebook"
-                                            class="h-5 w-5 text-[#1877F2]"
-                                        />
-                                        <span class="text-xs">Facebook</span>
-                                    </UButton>
-                                    <UButton
-                                        variant="outline"
-                                        class="flex flex-col items-center justify-center gap-1 p-3 h-auto"
-                                        @click="
-                                            shareToSocialMedia(
-                                                'instagram',
-                                                message.id
-                                            )
-                                        "
-                                        :disabled="isGenerating"
-                                    >
-                                        <UIcon
-                                            name="i-simple-icons-instagram"
-                                            class="h-5 w-5 text-[#E4405F]"
-                                        />
-                                        <span class="text-xs">Instagram</span>
-                                    </UButton>
-                                    <UButton
-                                        variant="outline"
-                                        class="flex flex-col items-center justify-center gap-1 p-3 h-auto"
-                                        @click="
-                                            shareToSocialMedia(
-                                                'whatsapp',
-                                                message.id
-                                            )
-                                        "
-                                        :disabled="isGenerating"
-                                    >
-                                        <UIcon
-                                            name="i-simple-icons-whatsapp"
-                                            class="h-5 w-5 text-[#25D366]"
-                                        />
-                                        <span class="text-xs">WhatsApp</span>
                                     </UButton>
                                 </div>
-                                <UButton
-                                    variant="soft"
-                                    color="neutral"
-                                    label="Download Image"
-                                    icon="i-heroicons-arrow-down-tray"
-                                    class="w-full gap-2 flex justify-center py-3"
-                                    @click="() => downloadImage(message.id)"
-                                    :disabled="isGenerating"
-                                >
-                                </UButton>
                             </div>
                         </div>
                     </template>
@@ -214,6 +161,8 @@ const tabs = [
     },
 ];
 
+const { shareViaWebShare } = useShare();
+
 const handleImageGenerated = (messageId, dataUrl) => {
     generatedImages.value = { ...generatedImages.value, [messageId]: dataUrl };
     if (Object.keys(generatedImages.value).length >= props.messages.length) {
@@ -239,71 +188,14 @@ const downloadImage = (messageId) => {
 };
 
 const shareToSocialMedia = (platform, messageId) => {
-    // In a real implementation, we would upload the image to a server
-    // and get a shareable URL, then open the appropriate sharing URL
-    const mockShareableUrl = "https://incognito.app/shared/m123456";
+    const message = props.messages.find((m) => m.id === messageId);
+    const imageUrl = generatedImages.value[messageId];
+    const shareText = `Check out this anonymous message on Incognito: ${message.text}`;
 
-    let shareUrl = "";
-    const shareText =
-        "Check out this anonymous message I received on Incognito!";
-
-    switch (platform) {
-        case "twitter":
-            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                shareText
-            )}&url=${encodeURIComponent(mockShareableUrl)}`;
-            break;
-        case "facebook":
-            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                mockShareableUrl
-            )}`;
-            break;
-        case "instagram":
-            // Instagram doesn't have a web sharing API, so we'd typically
-            // instruct the user to download and share manually
-            useToast().add({
-                title: "Instagram sharing",
-                description:
-                    "Download the image and share it on Instagram manually.",
-            });
-            downloadImage(messageId);
-            return;
-        case "whatsapp":
-            shareUrl = `https://wa.me/?text=${encodeURIComponent(
-                shareText + " " + mockShareableUrl
-            )}`;
-            break;
-        case "telegram":
-            shareUrl = `https://t.me/share/url?url=${encodeURIComponent(
-                mockShareableUrl
-            )}&text=${encodeURIComponent(shareText)}`;
-            break;
-        case "snapchat":
-            useToast().add({
-                title: "Snapchat sharing",
-                description:
-                    "Download the image and share it on Snapchat manually.",
-            });
-            downloadImage(messageId);
-            return;
-    }
-
-    if (shareUrl) {
-        window.open(shareUrl, "_blank");
-    }
+    shareViaWebShare({
+        title: "Incognito Message",
+        text: shareText,
+        file: imageUrl,
+    });
 };
-
-// Reset generating status when modal opens
-watch(
-    () => props.modelValue,
-    (newVal) => {
-        if (newVal) {
-            isGenerating.value = true;
-            // Simulate generation completion after a delay
-            setTimeout(() => {
-                isGenerating.value = false;
-            }, 1000);
-        }
-    }
-);
 </script>
