@@ -29,24 +29,50 @@
             class="absolute bottom-12 left-12 w-32 h-32 rounded-full bg-white/30"
         ></div>
 
-        <!-- Message -->
-        <div class="flex-1 flex items-center p-4 justify-center">
-            <p class="text-center text-6xl font-light leading-relaxed">
+        <!-- Message Content -->
+        <div class="flex-1 flex flex-col items-center p-4 justify-center">
+            <!-- Text Message -->
+            <p
+                v-if="message.message_type === 'text'"
+                class="text-center text-6xl font-light leading-relaxed"
+            >
                 {{ message.text }}
             </p>
+
+            <!-- Image Message -->
+            <div
+                v-else-if="message.message_type === 'image'"
+                class="flex flex-col items-center gap-4"
+            >
+                <p
+                    v-if="message.text"
+                    class="text-center text-4xl font-light leading-relaxed"
+                >
+                    {{ message.text }}
+                </p>
+                <div class="relative w-[800px] h-[800px]">
+                    <img
+                        :src="message.content"
+                        :alt="message.text || 'Image message'"
+                        class="w-full h-full object-contain rounded-lg"
+                        @load="onImageLoad"
+                        ref="messageImage"
+                    />
+                </div>
+            </div>
         </div>
         <div class="mt-auto pt-6">
             <div class="w-[50%] h-1 bg-white/90 mx-auto mb-4"></div>
             <p class="text-center text-6xl font-light">@{{ username }}</p>
         </div>
-        <div class="mt-40 flex flex-col items-center">
+        <div class="mt-32 flex flex-col items-center">
             <div
                 class="mb-2 bg-white/30 rounded-full p-6 flex items-center justify-center"
             >
                 <img
                     src="/images/logo_icon_colored.png"
                     alt="Incognito logo"
-                    class="w-[200px] h-[200px]"
+                    class="w-[150px] h-[150px]"
                 />
             </div>
             <!-- <UIcon name="i-custom-logo-text" size="40px" class="text-white" /> -->
@@ -57,7 +83,6 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
 import html2canvas from "html2canvas-pro";
 
 const props = defineProps({
@@ -70,19 +95,51 @@ const props = defineProps({
 const username = useAuthStore().userData.username;
 const emit = defineEmits(["generated"]);
 const cardContainer = useTemplateRef("cardContainer");
+const messageImage = useTemplateRef("messageImage");
+const imageLoaded = ref(false);
+
+// Function to handle image load
+const onImageLoad = () => {
+    imageLoaded.value = true;
+    generateImage();
+};
+
+// Function to generate the image
+const generateImage = () => {
+    if (!cardContainer.value) return;
+
+    // For image messages, wait for the image to load
+    if (props.message.message_type === "image" && !imageLoaded.value) {
+        return;
+    }
+
+    html2canvas(cardContainer.value, {
+        scale: 1,
+        width: 1080,
+        height: 1920,
+        useCORS: true,
+        allowTaint: true,
+        imageTimeout: 0,
+        onclone: (clonedDoc) => {
+            // Ensure the cloned document has the image loaded
+            const clonedImage = clonedDoc.querySelector(
+                'img[src*="' + props.message.content + '"]'
+            );
+            if (clonedImage) {
+                clonedImage.crossOrigin = "anonymous";
+            }
+        },
+    }).then((canvas) => {
+        const dataUrl = canvas.toDataURL("image/png");
+        emit("generated", dataUrl);
+    });
+};
 
 onMounted(() => {
-    if (cardContainer.value) {
-        html2canvas(cardContainer.value, {
-            scale: 1,
-            width: 1080,
-            height: 1920,
-            useCORS: true,
-            // logging: false,
-        }).then((canvas) => {
-            const dataUrl = canvas.toDataURL("image/png");
-            emit("generated", dataUrl);
-        });
+    // For text messages, generate immediately
+    if (props.message.message_type === "text") {
+        generateImage();
     }
+    // For image messages, wait for onImageLoad
 });
 </script>
