@@ -33,9 +33,21 @@
                                     }"
                                     autoresize
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-show="text_message.length < minLength"
+                                    >
+                                        (min: {{ minLength }})</span
+                                    >
                                 </p>
                             </div>
                         </template>
@@ -107,9 +119,25 @@
                                     }"
                                     autoresize
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length > 0 &&
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-if="
+                                            text_message.length > 0 &&
+                                            text_message.length < minLength
+                                        "
+                                    >
+                                        (min: {{ minLength }})
+                                    </span>
                                 </p>
                             </div>
                         </template>
@@ -186,9 +214,25 @@
                                     }"
                                     autoresize
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length > 0 &&
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-if="
+                                            text_message.length > 0 &&
+                                            text_message.length < minLength
+                                        "
+                                    >
+                                        (min: {{ minLength }})
+                                    </span>
                                 </p>
                             </div>
                         </template>
@@ -354,9 +398,25 @@
                                     }"
                                     autoresize
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length > 0 &&
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-if="
+                                            text_message.length > 0 &&
+                                            text_message.length < minLength
+                                        "
+                                    >
+                                        (min: {{ minLength }})
+                                    </span>
                                 </p>
                             </div>
                         </template>
@@ -387,6 +447,7 @@ import { useDropZone } from "@vueuse/core";
 
 /* Constants */
 const maxLength = 255;
+const minLength = 10;
 const tabs = [
     {
         label: "Text",
@@ -431,10 +492,23 @@ const videoDropZoneRef = useTemplateRef("videoDropZoneRef");
 
 const isSubmitDisabled = computed(() => {
     if (isSending.value) return true;
-    if (activeTab.value === "text" && !text_message.value.trim()) return true;
+    if (
+        activeTab.value === "text" &&
+        (text_message.value.trim().length < minLength ||
+            !text_message.value.trim())
+    )
+        return true;
     if (
         ["image", "video", "audio"].includes(activeTab.value) &&
         !mediaPreviewURL.value
+    ) {
+        return true;
+    }
+    // If there's text in media messages, it must meet minimum length
+    if (
+        ["image", "video", "audio"].includes(activeTab.value) &&
+        text_message.value.trim() &&
+        text_message.value.trim().length < minLength
     ) {
         return true;
     }

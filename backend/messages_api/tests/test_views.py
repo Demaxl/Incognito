@@ -44,8 +44,8 @@ class TestMessageViewSet:
         client, user = authenticated_client
 
         # Create messages for the user
-        message1 = message_factory("Message 1", receiver=user)
-        message2 = message_factory("Message 2", receiver=user)
+        message1 = message_factory("Text Message 1", receiver=user)
+        message2 = message_factory("Text Message 2", receiver=user)
         # Create message for another user
         other_message = message_factory("Other message")
 
