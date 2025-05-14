@@ -17,30 +17,58 @@ export const useShare = () => {
                     const response = await fetch(file);
                     const blob = await response.blob();
 
-                    // Create a File object
-                    const fileName = "incognito-message.png";
+                    // Create a File object with a better name and explicit type
+                    const fileName = "incognito-message-" + Date.now() + ".png";
                     const fileToShare = new File([blob], fileName, {
                         type: "image/png",
+                        lastModified: new Date().getTime(),
                     });
 
+                    // Some platforms handle files array better, others prefer a single file
                     shareData.files = [fileToShare];
                 } else if (url) {
                     shareData.url = url;
                 }
 
+                // Try to share
                 await navigator.share(shareData);
-                toast.add({
-                    title: "Shared successfully!",
-                    description: "Your content has been shared.",
-                    color: "success",
-                });
+                // toast.add({
+                //     title: "Shared successfully!",
+                //     description: "Your content has been shared.",
+                //     color: "success",
+                // });
                 return true;
             } catch (error) {
                 console.error("Error sharing:", error);
+
+                // If sharing failed, offer fallback
+                if (file) {
+                    // Offer download as fallback
+                    const link = document.createElement("a");
+                    link.href = file;
+                    link.download = "incognito-message-" + Date.now() + ".png";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    toast.add({
+                        title: "Sharing failed",
+                        description: "The image has been downloaded instead.",
+                        color: "warning",
+                    });
+                }
                 return false;
             }
+        } else {
+            // Web Share API not supported
+            toast.add({
+                title: "Sharing not supported",
+                description:
+                    "Your browser doesn't support the sharing feature.",
+                color: "error",
+            });
+            return false;
         }
-        return false;
     };
 
     const shareViaTwitter = ({ text, url }) => {

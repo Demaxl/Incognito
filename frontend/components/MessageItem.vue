@@ -59,33 +59,12 @@
                     <UIcon name="lucide:image" class="h-4 w-4 text-white" />
                 </div>
             </div>
-            <!-- Modal for full-screen image preview -->
-            <Transition
-                enter-active-class="animate__animated animate__fadeIn animate__faster"
-                leave-active-class="animate__animated animate__fadeOut animate__faster"
-            >
-                <div
-                    v-show="showImagePreview"
-                    class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-                >
-                    <OnClickOutside @trigger="showImagePreview = false">
-                        <img
-                            :src="content"
-                            class="max-w-full max-h-full"
-                            alt="Full Screen Image"
-                        />
-                    </OnClickOutside>
-                    <button
-                        @click="showImagePreview = false"
-                        class="absolute top-4 right-4 cursor-pointer text-white"
-                    >
-                        <Icon
-                            name="material-symbols:close-rounded"
-                            size="24px"
-                        ></Icon>
-                    </button>
-                </div>
-            </Transition>
+            <!-- Use the new ImagePreview component -->
+            <ImagePreview
+                v-model="showImagePreview"
+                :src="content"
+                alt="Image message"
+            />
         </div>
 
         <!-- Video message -->

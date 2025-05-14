@@ -7,8 +7,9 @@
             top: 0;
             width: 1080px;
             height: 1920px;
+            overflow: hidden;
         "
-        class="rounded-lg bg-gradient-to-r relative py-[200px] to-primary-500 from-[rgb(0,255,143)] p-6 text-white flex flex-col"
+        class="rounded-lg bg-gradient-to-r relative py-[200px] to-primary-500 from-[rgb(0,255,143)] text-white flex flex-col"
     >
         <!-- <div
         ref="cardContainer"
@@ -30,7 +31,7 @@
         ></div>
 
         <!-- Message Content -->
-        <div class="flex-1 flex flex-col items-center p-4 justify-center">
+        <div class="flex-1 flex flex-col items-center p-6 justify-center">
             <!-- Text Message -->
             <p
                 v-if="message.message_type === 'text'"
@@ -50,7 +51,7 @@
                 >
                     {{ message.text }}
                 </p>
-                <div class="relative w-[800px] h-[800px]">
+                <div class="relative w-[800px] h-[800px] bg-transparent">
                     <img
                         :src="message.content"
                         :alt="message.text || 'Image message'"
@@ -115,10 +116,12 @@ const generateImage = () => {
 
     html2canvas(cardContainer.value, {
         scale: 1,
-        width: 1080,
-        height: 1920,
+        width: 1070,
+        height: 1905,
         useCORS: true,
-        allowTaint: true,
+        backgroundColor: null,
+        windowWidth: 1070,
+        windowHeight: 1905,
         imageTimeout: 0,
         onclone: (clonedDoc) => {
             // Ensure the cloned document has the image loaded
@@ -127,6 +130,17 @@ const generateImage = () => {
             );
             if (clonedImage) {
                 clonedImage.crossOrigin = "anonymous";
+            }
+
+            // Ensure the gradient fills the entire cloned container
+            const clonedContainer = clonedDoc.querySelector(
+                '[ref="cardContainer"]'
+            );
+            if (clonedContainer) {
+                clonedContainer.style.width = "1080px";
+                clonedContainer.style.height = "1920px";
+                clonedContainer.style.overflow = "hidden";
+                clonedContainer.style.padding = "0";
             }
         },
     }).then((canvas) => {

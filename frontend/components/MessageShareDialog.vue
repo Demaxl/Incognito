@@ -1,5 +1,5 @@
 <template>
-    <UModal class="overflow-y-scroll">
+    <UModal>
         <template #content>
             <UCard :ui="{ root: 'divide-none' }">
                 <template #header>
@@ -65,10 +65,22 @@
                                     class="flex justify-center"
                                 >
                                     <img
-                                        style="width: auto; height: 400px"
+                                        style="
+                                            width: auto;
+                                            height: 400px;
+                                            cursor: zoom-in;
+                                        "
                                         :src="generatedImage"
                                         alt="Generated Message"
+                                        @click="showImagePreview = true"
                                     />
+                                    <Teleport to="body">
+                                        <ImagePreview
+                                            v-model="showImagePreview"
+                                            :src="generatedImage"
+                                            alt="Generated Message"
+                                        />
+                                    </Teleport>
                                 </div>
                             </TransitionGroup>
                             <!-- </div> -->
@@ -146,6 +158,7 @@ const username = useAuthStore().userData.username;
 // Stores generated image data URLs by message ID
 const generatedImages = ref({});
 const isGenerating = ref(true);
+const showImagePreview = ref(false);
 
 // Tabs configuration for UTabs
 const tabs = [
@@ -192,6 +205,7 @@ const shareToSocialMedia = (platform, messageId) => {
     const imageUrl = generatedImages.value[messageId];
     const shareText = `Check out this anonymous message on Incognito: ${message.text}`;
 
+    // Use Web Share API for most platforms
     shareViaWebShare({
         title: "Incognito Message",
         text: shareText,
