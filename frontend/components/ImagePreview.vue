@@ -10,9 +10,9 @@
         >
             <OnClickOutside @trigger="close">
                 <img
-                    :src="src"
+                    :src="sanitizedSrc"
                     class="max-w-full max-h-[90vh] object-contain"
-                    :alt="alt"
+                    :alt="sanitizedAlt"
                 />
             </OnClickOutside>
             <button
@@ -27,6 +27,7 @@
 
 <script setup>
 import { OnClickOutside } from "@vueuse/components";
+import { sanitizeUrl, sanitizeText } from "~/utils/sanitize";
 
 const props = defineProps({
     modelValue: {
@@ -44,6 +45,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue"]);
+
+// Sanitize content and text
+const sanitizedSrc = computed(() => sanitizeUrl(props.src));
+const sanitizedAlt = computed(() => sanitizeText(props.alt));
 
 const close = () => {
     emit("update:modelValue", false);

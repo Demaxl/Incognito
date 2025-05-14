@@ -38,17 +38,17 @@
         </div>
 
         <!-- Text message -->
-        <p v-if="message_type === 'text'" class="text-sm">
-            {{ content }}
-        </p>
+        <div v-if="message_type === 'text'" class="space-y-2">
+            <p class="text-sm">{{ sanitizedText }}</p>
+        </div>
 
         <!-- Image message -->
         <div v-else-if="message_type === 'image'" class="space-y-2">
-            <p class="text-sm mb-5">{{ text }}</p>
+            <p class="text-sm mb-5">{{ sanitizedText }}</p>
             <div class="relative rounded-md overflow-hidden">
                 <img
-                    :src="content"
-                    alt="Image message"
+                    :src="sanitizedContent"
+                    :alt="sanitizedText || 'Image message'"
                     class="sm:max-w-[500px] h-auto mx-auto rounded-md cursor-zoom-in"
                     @click="showImagePreview = true"
                 />
@@ -62,14 +62,14 @@
             <!-- Use the new ImagePreview component -->
             <ImagePreview
                 v-model="showImagePreview"
-                :src="content"
-                alt="Image message"
+                :src="sanitizedContent"
+                :alt="sanitizedText || 'Image message'"
             />
         </div>
 
         <!-- Video message -->
         <div v-else-if="message_type === 'video'" class="space-y-2">
-            <p class="text-sm mb-5">{{ text }}</p>
+            <p class="text-sm mb-5">{{ sanitizedText }}</p>
             <div class="relative rounded-md overflow-hidden">
                 <div class="rounded-md flex items-center justify-center">
                     <div
@@ -93,7 +93,7 @@
                         @play="isPlayingVideo = true"
                         @pause="isPlayingVideo = false"
                     >
-                        <source :src="content" type="video/mp4" />
+                        <source :src="sanitizedContent" type="video/mp4" />
                     </video>
                     <div
                         class="absolute top-2 right-2 bg-black/40 rounded-full p-1 flex items-center justify-center"
@@ -106,8 +106,8 @@
 
         <!-- Audio message -->
         <div v-else-if="message_type === 'audio'" class="space-y-2">
-            <p class="text-sm">{{ text }}</p>
-            <AudioPlayer :src="content" />
+            <p class="text-sm">{{ sanitizedText }}</p>
+            <AudioPlayer :src="sanitizedContent" />
         </div>
     </UCard>
 </template>
@@ -115,6 +115,7 @@
 <script setup>
 import { OnClickOutside } from "@vueuse/components";
 import { MessageShareDialog } from "#components";
+import { sanitizeUrl, sanitizeText } from "~/utils/sanitize";
 
 const emit = defineEmits(["delete"]);
 
@@ -124,7 +125,12 @@ const props = defineProps({
     id: Number,
     text: String,
     timestamp: String,
+    is_read: Boolean,
 });
+
+// Sanitize content and text
+const sanitizedContent = computed(() => sanitizeUrl(props.content));
+const sanitizedText = computed(() => sanitizeText(props.text));
 
 const isPlayingVideo = ref(false);
 const showImagePreview = ref(false);

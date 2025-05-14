@@ -70,15 +70,19 @@
                                             height: 400px;
                                             cursor: zoom-in;
                                         "
-                                        :src="generatedImage"
-                                        alt="Generated Message"
+                                        :src="sanitizeUrl(generatedImage)"
+                                        :alt="sanitizeText('Generated Message')"
                                         @click="showImagePreview = true"
                                     />
                                     <Teleport to="body">
                                         <ImagePreview
                                             v-model="showImagePreview"
-                                            :src="generatedImage"
-                                            alt="Generated Message"
+                                            :src="sanitizeUrl(generatedImage)"
+                                            :alt="
+                                                sanitizeText(
+                                                    'Generated Message'
+                                                )
+                                            "
                                         />
                                     </Teleport>
                                 </div>
@@ -146,6 +150,8 @@
 </template>
 
 <script setup>
+import { sanitizeUrl, sanitizeText } from "~/utils/sanitize";
+
 const props = defineProps({
     messages: {
         type: Array,
@@ -159,6 +165,15 @@ const username = useAuthStore().userData.username;
 const generatedImages = ref({});
 const isGenerating = ref(true);
 const showImagePreview = ref(false);
+
+// Sanitize message content
+const sanitizedMessages = computed(() => {
+    return props.messages.map((message) => ({
+        ...message,
+        text: sanitizeText(message.text),
+        content: sanitizeUrl(message.content),
+    }));
+});
 
 // Tabs configuration for UTabs
 const tabs = [
@@ -201,7 +216,7 @@ const downloadImage = (messageId) => {
 };
 
 const shareToSocialMedia = (platform, messageId) => {
-    const message = props.messages.find((m) => m.id === messageId);
+    const message = sanitizedMessages.value.find((m) => m.id === messageId);
     const imageUrl = generatedImages.value[messageId];
     const shareText = `Check out this anonymous message on Incognito: ${message.text}`;
 

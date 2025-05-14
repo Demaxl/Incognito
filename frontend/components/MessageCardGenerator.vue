@@ -55,6 +55,7 @@
                     <img
                         :src="message.content"
                         :alt="message.text || 'Image message'"
+                        :data-message-id="message.id"
                         class="w-full h-full object-contain rounded-lg"
                         @load="onImageLoad"
                         ref="messageImage"
@@ -126,7 +127,7 @@ const generateImage = () => {
         onclone: (clonedDoc) => {
             // Ensure the cloned document has the image loaded
             const clonedImage = clonedDoc.querySelector(
-                'img[src*="' + props.message.content + '"]'
+                `img[data-message-id="${props.message.id}"]`
             );
             if (clonedImage) {
                 clonedImage.crossOrigin = "anonymous";
