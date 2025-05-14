@@ -32,6 +32,7 @@
                                         base: 'min-h-[150px] resize-none w-full block',
                                     }"
                                     autoresize
+                                    @keydown="handleKeyDown"
                                 />
                                 <p
                                     class="text-xs text-right"
@@ -731,6 +732,16 @@ async function toggleRecording() {
         if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
             mediaRecorder.value.stop();
             isRecording.value = false;
+        }
+    }
+}
+
+function handleKeyDown(e) {
+    // Check if Ctrl + Enter is pressed
+    if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault(); // Prevent default behavior
+        if (!isSubmitDisabled.value) {
+            handleSubmit();
         }
     }
 }

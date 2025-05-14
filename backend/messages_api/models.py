@@ -24,6 +24,7 @@ class Message(models.Model):
     message_type = models.CharField(
         max_length=10, choices=MESSAGE_TYPES, default=TEXT)
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"{self.receiver}: {self.content}"

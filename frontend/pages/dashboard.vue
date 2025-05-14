@@ -47,6 +47,7 @@
             </UCard>
             <div class="flex items-center justify-between">
                 <UTabs
+                    v-model="activeTab"
                     :items="tabItems"
                     size="lg"
                     :content="false"
@@ -60,12 +61,40 @@
             <div class="mt-4 space-y-4 block">
                 <TransitionGroup name="list">
                     <MessageItem
-                        v-for="message in messages"
+                        v-for="message in filteredMessages"
                         :key="message.id"
                         v-bind="message"
                         @delete="removeMessageItem"
                     />
                 </TransitionGroup>
+
+                <UCard
+                    v-if="filteredMessages.length === 0"
+                    class="text-center py-8"
+                >
+                    <template #header>
+                        <div class="flex flex-col items-center gap-2">
+                            <Icon
+                                name="lucide:inbox"
+                                class="h-12 w-12 text-primary-400"
+                            />
+                            <h3 class="text-lg font-medium">
+                                {{
+                                    activeTab === "unread"
+                                        ? "No unread messages"
+                                        : "No messages yet"
+                                }}
+                            </h3>
+                        </div>
+                    </template>
+                    <p class="text-gray-500">
+                        {{
+                            activeTab === "unread"
+                                ? "You've read all your messages"
+                                : "Share your link to start receiving anonymous messages"
+                        }}
+                    </p>
+                </UCard>
             </div>
         </div>
     </main>
@@ -81,10 +110,12 @@ const tabItems = [
     {
         label: "All Messages",
         slot: "all",
+        value: "all",
     },
     {
         label: "Unread",
         slot: "unread",
+        value: "unread",
     },
 ];
 
@@ -107,6 +138,15 @@ const modal = overlay.create(LinkShareDialog, {
 });
 
 const { copyToClipboard } = useCopyToClipboard();
+
+const activeTab = ref("all");
+
+const filteredMessages = computed(() => {
+    if (activeTab.value === "unread") {
+        return messages.value.filter((message) => !message.is_read);
+    }
+    return messages.value;
+});
 
 function copyLinkToClipboard() {
     copyToClipboard(linkValue.value, {

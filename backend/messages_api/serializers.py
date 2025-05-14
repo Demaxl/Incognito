@@ -42,11 +42,12 @@ class MessageSerializer(serializers.ModelSerializer):
     # Media content fields for write
     media_content = serializers.FileField(write_only=True, required=False)
     text_content = serializers.CharField(write_only=True, required=False)
+    is_read = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Message
         fields = ['id', 'receiver',
-                  'message_type', 'timestamp', 'content', 'text', 'media_content', 'text_content']
+                  'message_type', 'timestamp', 'content', 'text', 'media_content', 'text_content', 'is_read']
 
     def get_content(self, obj):
         """

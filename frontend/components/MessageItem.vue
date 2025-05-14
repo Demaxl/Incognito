@@ -9,9 +9,9 @@
                 <div class="text-sm text-gray-500">
                     {{ timeAgo(timestamp) }}
                 </div>
-                <!-- <UBadge v-if="!read" colo  r="primary" size="xs" class="ml-2"
+                <UBadge v-if="!is_read" color="primary" size="xs" class="ml-2"
                     >New</UBadge
-                > -->
+                >
             </div>
             <div class="flex items-center gap-1">
                 <UTooltip text="Share message" :delay-duration="0">
