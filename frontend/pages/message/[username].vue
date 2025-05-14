@@ -482,13 +482,48 @@ const text_message = ref("");
 const isSending = ref(false);
 const activeTab = ref("text");
 const isRecording = ref(false);
-const mediaPreviewURL = ref(null);
-const mediaFile = ref(null);
+
+// Separate media refs for each type
+const imagePreviewURL = ref(null);
+const imageFile = ref(null);
+const videoPreviewURL = ref(null);
+const videoFile = ref(null);
+const audioPreviewURL = ref(null);
+const audioFile = ref(null);
+
 const mediaRecorder = ref(null);
 const audioChunks = ref([]);
 // Drop zone refs
 const imageDropZoneRef = useTemplateRef("imageDropZoneRef");
 const videoDropZoneRef = useTemplateRef("videoDropZoneRef");
+
+// Computed property to get the current media preview URL based on active tab
+const mediaPreviewURL = computed(() => {
+    switch (activeTab.value) {
+        case "image":
+            return imagePreviewURL.value;
+        case "video":
+            return videoPreviewURL.value;
+        case "audio":
+            return audioPreviewURL.value;
+        default:
+            return null;
+    }
+});
+
+// Computed property to get the current media file based on active tab
+const mediaFile = computed(() => {
+    switch (activeTab.value) {
+        case "image":
+            return imageFile.value;
+        case "video":
+            return videoFile.value;
+        case "audio":
+            return audioFile.value;
+        default:
+            return null;
+    }
+});
 
 const isSubmitDisabled = computed(() => {
     if (isSending.value) return true;
@@ -520,38 +555,93 @@ const toast = useToast();
 
 // Set up drop zones using useDropZone
 const { isOverDropZone: isOverImageDropZone } = useDropZone(imageDropZoneRef, {
-    onDrop: (files) => setMediaFile(files[0]),
+    onDrop: (files) => setMediaFile(files[0], "image"),
     dataTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
     multiple: false,
 });
 
 const { isOverDropZone: isOverVideoDropZone } = useDropZone(videoDropZoneRef, {
-    onDrop: (files) => setMediaFile(files[0]),
+    onDrop: (files) => setMediaFile(files[0], "video"),
     dataTypes: ["video/mp4", "video/webm", "video/ogg"],
     multiple: false,
 });
 
 /* Functions */
 
-function setMediaFile(file) {
+function setMediaFile(file, type) {
     // Create a preview URL for the selected file
     const url = URL.createObjectURL(file);
-    mediaPreviewURL.value = url;
-    mediaFile.value = file;
+
+    // Clear any existing preview URL for this type
+    clearMediaFile(type);
+
+    // Set the new preview URL and file based on type
+    switch (type) {
+        case "image":
+            imagePreviewURL.value = url;
+            imageFile.value = file;
+            break;
+        case "video":
+            videoPreviewURL.value = url;
+            videoFile.value = file;
+            break;
+        case "audio":
+            audioPreviewURL.value = url;
+            audioFile.value = file;
+            break;
+    }
 }
 
-function clearMediaFile() {
-    if (mediaPreviewURL.value) {
-        URL.revokeObjectURL(mediaPreviewURL.value);
+function clearMediaFile(type = null) {
+    // If type is specified, only clear that type
+    if (type) {
+        switch (type) {
+            case "image":
+                if (imagePreviewURL.value) {
+                    URL.revokeObjectURL(imagePreviewURL.value);
+                    imagePreviewURL.value = null;
+                    imageFile.value = null;
+                }
+                break;
+            case "video":
+                if (videoPreviewURL.value) {
+                    URL.revokeObjectURL(videoPreviewURL.value);
+                    videoPreviewURL.value = null;
+                    videoFile.value = null;
+                }
+                break;
+            case "audio":
+                if (audioPreviewURL.value) {
+                    URL.revokeObjectURL(audioPreviewURL.value);
+                    audioPreviewURL.value = null;
+                    audioFile.value = null;
+                }
+                break;
+        }
+    } else {
+        // Clear all media types
+        if (imagePreviewURL.value) {
+            URL.revokeObjectURL(imagePreviewURL.value);
+            imagePreviewURL.value = null;
+            imageFile.value = null;
+        }
+        if (videoPreviewURL.value) {
+            URL.revokeObjectURL(videoPreviewURL.value);
+            videoPreviewURL.value = null;
+            videoFile.value = null;
+        }
+        if (audioPreviewURL.value) {
+            URL.revokeObjectURL(audioPreviewURL.value);
+            audioPreviewURL.value = null;
+            audioFile.value = null;
+        }
     }
-    mediaPreviewURL.value = null;
-    mediaFile.value = null;
 }
 
 function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (file) {
-        setMediaFile(file);
+        setMediaFile(file, activeTab.value);
     }
 }
 
@@ -609,10 +699,10 @@ async function toggleRecording() {
                     type: "audio/mpeg",
                 });
                 const audioUrl = URL.createObjectURL(audioBlob);
-                mediaPreviewURL.value = audioUrl;
+                audioPreviewURL.value = audioUrl;
 
                 // Convert blob to File object
-                const audioFile = new File(
+                const audioFileObj = new File(
                     [audioBlob],
                     `audio-recording-${Date.now()}.mp3`,
                     {
@@ -620,7 +710,7 @@ async function toggleRecording() {
                         lastModified: Date.now(),
                     }
                 );
-                mediaFile.value = audioFile;
+                audioFile.value = audioFileObj;
 
                 // Stop all audio tracks
                 stream.getTracks().forEach((track) => track.stop());
@@ -650,8 +740,6 @@ onBeforeUnmount(() => {
     if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
         mediaRecorder.value.stop();
     }
-    if (mediaPreviewURL.value) {
-        URL.revokeObjectURL(mediaPreviewURL.value);
-    }
+    clearMediaFile();
 });
 </script>
