@@ -76,7 +76,6 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 # TODO
 
--   Handle deleteing message and the toast that shows null when deleting media
 -   Add seo and title tags
 -   Add button to refresh messages
 -   add notifications

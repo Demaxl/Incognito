@@ -667,9 +667,9 @@ async function handleSubmit() {
     }
 
     const { sendMessage } = useMessagesAPI();
-    const responseStatus = await sendMessage(formData);
+    const { status } = await sendMessage(formData);
 
-    if (responseStatus === 201) {
+    if (status === 201) {
         isSending.value = false;
         text_message.value = "";
         clearMediaFile();
