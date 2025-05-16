@@ -115,6 +115,7 @@
                                     v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
+                                    :maxlength="maxLength"
                                     :ui="{
                                         base: 'min-h-[80px] resize-none w-full block',
                                     }"
@@ -210,6 +211,7 @@
                                     v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
+                                    :maxlength="maxLength"
                                     :ui="{
                                         base: 'min-h-[80px] resize-none w-full block',
                                     }"
@@ -394,6 +396,7 @@
                                     v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
+                                    :maxlength="maxLength"
                                     :ui="{
                                         base: 'min-h-[80px] resize-none w-full block',
                                     }"
@@ -667,21 +670,29 @@ async function handleSubmit() {
     }
 
     const { sendMessage } = useMessagesAPI();
-    const { status } = await sendMessage(formData);
+    try {
+        const { status } = await sendMessage(formData);
+        if (status === 201) {
+            isSending.value = false;
+            text_message.value = "";
+            clearMediaFile();
 
-    if (status === 201) {
-        isSending.value = false;
-        text_message.value = "";
-        clearMediaFile();
-
+            toast.add({
+                title: "Message sent!",
+                description: `Your anonymous message has been delivered to ${username}.`,
+                color: "success",
+            });
+        }
+    } catch (error) {
+        console.error("Error sending message:", error);
         toast.add({
-            title: "Message sent!",
-            description: `Your anonymous message has been delivered to ${username}.`,
-            color: "success",
+            title: "Error",
+            description: "Failed to send message. Please try again.",
+            color: "error",
         });
+        isSending.value = false;
     }
 }
-
 async function toggleRecording() {
     if (!isRecording.value) {
         try {
