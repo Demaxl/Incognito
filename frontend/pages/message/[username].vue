@@ -32,10 +32,23 @@
                                         base: 'min-h-[150px] resize-none w-full block',
                                     }"
                                     autoresize
+                                    @keydown="handleKeyDown"
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-show="text_message.length < minLength"
+                                    >
+                                        (min: {{ minLength }})</span
+                                    >
                                 </p>
                             </div>
                         </template>
@@ -66,7 +79,7 @@
                                             variant="solid"
                                             size="lg"
                                             class="absolute top-2 right-2"
-                                            @click="clearMediaFile"
+                                            @click="clearMediaFile('image')"
                                         >
                                             Change
                                         </UButton>
@@ -102,14 +115,31 @@
                                     v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
+                                    :maxlength="maxLength"
                                     :ui="{
                                         base: 'min-h-[80px] resize-none w-full block',
                                     }"
                                     autoresize
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length > 0 &&
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-if="
+                                            text_message.length > 0 &&
+                                            text_message.length < minLength
+                                        "
+                                    >
+                                        (min: {{ minLength }})
+                                    </span>
                                 </p>
                             </div>
                         </template>
@@ -144,7 +174,7 @@
                                             variant="solid"
                                             size="lg"
                                             class="absolute top-2 right-2"
-                                            @click="clearMediaFile"
+                                            @click="clearMediaFile('video')"
                                         >
                                             Change
                                         </UButton>
@@ -181,14 +211,31 @@
                                     v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
+                                    :maxlength="maxLength"
                                     :ui="{
                                         base: 'min-h-[80px] resize-none w-full block',
                                     }"
                                     autoresize
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length > 0 &&
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-if="
+                                            text_message.length > 0 &&
+                                            text_message.length < minLength
+                                        "
+                                    >
+                                        (min: {{ minLength }})
+                                    </span>
                                 </p>
                             </div>
                         </template>
@@ -212,7 +259,9 @@
                                                             icon="lucide:trash-2"
                                                             class="cursor-pointer"
                                                             @click="
-                                                                clearMediaFile
+                                                                clearMediaFile(
+                                                                    'audio'
+                                                                )
                                                             "
                                                         >
                                                             <span
@@ -349,14 +398,31 @@
                                     v-model="text_message"
                                     placeholder="Add a caption (optional)"
                                     class="block"
+                                    :maxlength="maxLength"
                                     :ui="{
                                         base: 'min-h-[80px] resize-none w-full block',
                                     }"
                                     autoresize
                                 />
-                                <p class="text-xs text-gray-500 text-right">
+                                <p
+                                    class="text-xs text-right"
+                                    :class="
+                                        text_message.length > 0 &&
+                                        text_message.length < minLength
+                                            ? 'text-orange-500'
+                                            : 'text-gray-500'
+                                    "
+                                >
                                     {{ text_message.length }}/{{ maxLength }}
                                     characters
+                                    <span
+                                        v-if="
+                                            text_message.length > 0 &&
+                                            text_message.length < minLength
+                                        "
+                                    >
+                                        (min: {{ minLength }})
+                                    </span>
                                 </p>
                             </div>
                         </template>
@@ -387,6 +453,7 @@ import { useDropZone } from "@vueuse/core";
 
 /* Constants */
 const maxLength = 255;
+const minLength = 10;
 const tabs = [
     {
         label: "Text",
@@ -421,20 +488,68 @@ const text_message = ref("");
 const isSending = ref(false);
 const activeTab = ref("text");
 const isRecording = ref(false);
-const mediaPreviewURL = ref(null);
-const mediaFile = ref(null);
+
+// Separate media refs for each type
+const imagePreviewURL = ref(null);
+const imageFile = ref(null);
+const videoPreviewURL = ref(null);
+const videoFile = ref(null);
+const audioPreviewURL = ref(null);
+const audioFile = ref(null);
+
 const mediaRecorder = ref(null);
 const audioChunks = ref([]);
 // Drop zone refs
 const imageDropZoneRef = useTemplateRef("imageDropZoneRef");
 const videoDropZoneRef = useTemplateRef("videoDropZoneRef");
 
+// Computed property to get the current media preview URL based on active tab
+const mediaPreviewURL = computed(() => {
+    switch (activeTab.value) {
+        case "image":
+            return imagePreviewURL.value;
+        case "video":
+            return videoPreviewURL.value;
+        case "audio":
+            return audioPreviewURL.value;
+        default:
+            return null;
+    }
+});
+
+// Computed property to get the current media file based on active tab
+const mediaFile = computed(() => {
+    switch (activeTab.value) {
+        case "image":
+            return imageFile.value;
+        case "video":
+            return videoFile.value;
+        case "audio":
+            return audioFile.value;
+        default:
+            return null;
+    }
+});
+
 const isSubmitDisabled = computed(() => {
     if (isSending.value) return true;
-    if (activeTab.value === "text" && !text_message.value.trim()) return true;
+    if (
+        activeTab.value === "text" &&
+        (text_message.value.trim().length < minLength ||
+            !text_message.value.trim())
+    )
+        return true;
     if (
         ["image", "video", "audio"].includes(activeTab.value) &&
         !mediaPreviewURL.value
+    ) {
+        return true;
+    }
+    // If there's text in media messages, it must meet minimum length
+    if (
+        ["image", "video", "audio"].includes(activeTab.value) &&
+        text_message.value.trim() &&
+        text_message.value.trim().length < minLength
     ) {
         return true;
     }
@@ -446,38 +561,93 @@ const toast = useToast();
 
 // Set up drop zones using useDropZone
 const { isOverDropZone: isOverImageDropZone } = useDropZone(imageDropZoneRef, {
-    onDrop: (files) => setMediaFile(files[0]),
+    onDrop: (files) => setMediaFile(files[0], "image"),
     dataTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
     multiple: false,
 });
 
 const { isOverDropZone: isOverVideoDropZone } = useDropZone(videoDropZoneRef, {
-    onDrop: (files) => setMediaFile(files[0]),
+    onDrop: (files) => setMediaFile(files[0], "video"),
     dataTypes: ["video/mp4", "video/webm", "video/ogg"],
     multiple: false,
 });
 
 /* Functions */
 
-function setMediaFile(file) {
+function setMediaFile(file, type) {
     // Create a preview URL for the selected file
     const url = URL.createObjectURL(file);
-    mediaPreviewURL.value = url;
-    mediaFile.value = file;
+
+    // Clear any existing preview URL for this type
+    clearMediaFile(type);
+
+    // Set the new preview URL and file based on type
+    switch (type) {
+        case "image":
+            imagePreviewURL.value = url;
+            imageFile.value = file;
+            break;
+        case "video":
+            videoPreviewURL.value = url;
+            videoFile.value = file;
+            break;
+        case "audio":
+            audioPreviewURL.value = url;
+            audioFile.value = file;
+            break;
+    }
 }
 
-function clearMediaFile() {
-    if (mediaPreviewURL.value) {
-        URL.revokeObjectURL(mediaPreviewURL.value);
+function clearMediaFile(type = null) {
+    // If type is specified, only clear that type
+    if (type) {
+        switch (type) {
+            case "image":
+                if (imagePreviewURL.value) {
+                    URL.revokeObjectURL(imagePreviewURL.value);
+                    imagePreviewURL.value = null;
+                    imageFile.value = null;
+                }
+                break;
+            case "video":
+                if (videoPreviewURL.value) {
+                    URL.revokeObjectURL(videoPreviewURL.value);
+                    videoPreviewURL.value = null;
+                    videoFile.value = null;
+                }
+                break;
+            case "audio":
+                if (audioPreviewURL.value) {
+                    URL.revokeObjectURL(audioPreviewURL.value);
+                    audioPreviewURL.value = null;
+                    audioFile.value = null;
+                }
+                break;
+        }
+    } else {
+        // Clear all media types
+        if (imagePreviewURL.value) {
+            URL.revokeObjectURL(imagePreviewURL.value);
+            imagePreviewURL.value = null;
+            imageFile.value = null;
+        }
+        if (videoPreviewURL.value) {
+            URL.revokeObjectURL(videoPreviewURL.value);
+            videoPreviewURL.value = null;
+            videoFile.value = null;
+        }
+        if (audioPreviewURL.value) {
+            URL.revokeObjectURL(audioPreviewURL.value);
+            audioPreviewURL.value = null;
+            audioFile.value = null;
+        }
     }
-    mediaPreviewURL.value = null;
-    mediaFile.value = null;
 }
 
 function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (file) {
-        setMediaFile(file);
+        setMediaFile(file, activeTab.value);
     }
 }
 
@@ -502,21 +672,29 @@ async function handleSubmit() {
     }
 
     const { sendMessage } = useMessagesAPI();
-    const responseStatus = await sendMessage(formData);
+    try {
+        const { status } = await sendMessage(formData);
+        if (status === 201) {
+            isSending.value = false;
+            text_message.value = "";
+            clearMediaFile();
 
-    if (responseStatus === 201) {
-        isSending.value = false;
-        text_message.value = "";
-        clearMediaFile();
-
+            toast.add({
+                title: "Message sent!",
+                description: `Your anonymous message has been delivered to ${username}.`,
+                color: "success",
+            });
+        }
+    } catch (error) {
+        console.error("Error sending message:", error);
         toast.add({
-            title: "Message sent!",
-            description: `Your anonymous message has been delivered to ${username}.`,
-            color: "success",
+            title: "Error",
+            description: "Failed to send message. Please try again.",
+            color: "error",
         });
+        isSending.value = false;
     }
 }
-
 async function toggleRecording() {
     if (!isRecording.value) {
         try {
@@ -535,10 +713,10 @@ async function toggleRecording() {
                     type: "audio/mpeg",
                 });
                 const audioUrl = URL.createObjectURL(audioBlob);
-                mediaPreviewURL.value = audioUrl;
+                audioPreviewURL.value = audioUrl;
 
                 // Convert blob to File object
-                const audioFile = new File(
+                const audioFileObj = new File(
                     [audioBlob],
                     `audio-recording-${Date.now()}.mp3`,
                     {
@@ -546,7 +724,7 @@ async function toggleRecording() {
                         lastModified: Date.now(),
                     }
                 );
-                mediaFile.value = audioFile;
+                audioFile.value = audioFileObj;
 
                 // Stop all audio tracks
                 stream.getTracks().forEach((track) => track.stop());
@@ -571,13 +749,21 @@ async function toggleRecording() {
     }
 }
 
+function handleKeyDown(e) {
+    // Check if Ctrl + Enter is pressed
+    if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault(); // Prevent default behavior
+        if (!isSubmitDisabled.value) {
+            handleSubmit();
+        }
+    }
+}
+
 // Clean up media recorder when component is unmounted
 onBeforeUnmount(() => {
     if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
         mediaRecorder.value.stop();
     }
-    if (mediaPreviewURL.value) {
-        URL.revokeObjectURL(mediaPreviewURL.value);
-    }
+    clearMediaFile();
 });
 </script>

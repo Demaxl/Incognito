@@ -53,7 +53,7 @@
                                 variant="outline"
                                 id="password"
                                 size="lg"
-                                placeholder="Create a password"
+                                placeholder="Enter your password"
                                 :type="showPassword ? 'text' : 'password'"
                                 :ui="{ trailing: 'pe-1' }"
                             >

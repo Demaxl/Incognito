@@ -24,6 +24,7 @@ class Message(models.Model):
     message_type = models.CharField(
         max_length=10, choices=MESSAGE_TYPES, default=TEXT)
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"{self.receiver}: {self.content}"
@@ -71,17 +72,23 @@ class MessageTypeAbstract(models.Model):
     """Base abstract model for all message content types."""
 
     # Every type of message can have an optional text content
-    text = models.TextField(blank=True, null=True, max_length=255)
+    text = models.CharField(blank=True, null=True, max_length=255)
+    MIN_TEXT_LENGTH = 10
 
     class Meta:
         abstract = True
 
     def clean(self):
-       # Ensure the related 'message' exists before accessing its attributes
+        # Ensure the related 'message' exists before accessing its attributes
         if self.message_id is None:
             return
         if self.TYPE != self.message.message_type:
             raise ValidationError({"message": "Invalid message type"})
+
+        # If text is provided, ensure it meets minimum length
+        if self.text and len(self.text) < self.MIN_TEXT_LENGTH:
+            raise ValidationError({"text": f"Text must be at least {
+                                  self.MIN_TEXT_LENGTH} characters long if provided"})
 
     def save(self, *args, **kwargs):
         self.full_clean()

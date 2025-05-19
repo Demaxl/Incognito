@@ -9,34 +9,46 @@
                 <div class="text-sm text-gray-500">
                     {{ timeAgo(timestamp) }}
                 </div>
-                <!-- <UBadge v-if="!read" color="primary" size="xs" class="ml-2"
+                <UBadge v-if="!is_read" color="primary" size="xs" class="ml-2"
                     >New</UBadge
-                > -->
+                >
             </div>
-            <UTooltip text="Delete message" :delay-duration="0">
-                <UButton
-                    color="error"
-                    variant="ghost"
-                    icon="i-lucide-trash-2"
-                    size="xs"
-                    class="cursor-pointer"
-                    @click="deleteMessageItem(props)"
-                />
-            </UTooltip>
+            <div class="flex items-center gap-1">
+                <UTooltip text="Share message" :delay-duration="0">
+                    <UButton
+                        color="primary"
+                        variant="ghost"
+                        icon="material-symbols:share-outline"
+                        size="sm"
+                        class="cursor-pointer"
+                        @click="shareMessageModal.open()"
+                    />
+                </UTooltip>
+                <UTooltip text="Delete message" :delay-duration="0">
+                    <UButton
+                        color="error"
+                        variant="ghost"
+                        icon="i-lucide-trash-2"
+                        size="sm"
+                        class="cursor-pointer"
+                        @click="deleteMessageItem(props)"
+                    />
+                </UTooltip>
+            </div>
         </div>
 
         <!-- Text message -->
-        <p v-if="message_type === 'text'" class="text-sm">
-            {{ content }}
-        </p>
+        <div v-if="message_type === 'text'" class="space-y-2">
+            <p class="text-sm">{{ sanitizedText }}</p>
+        </div>
 
         <!-- Image message -->
         <div v-else-if="message_type === 'image'" class="space-y-2">
-            <p class="text-sm mb-5">{{ text }}</p>
+            <p class="text-sm mb-5">{{ sanitizedText }}</p>
             <div class="relative rounded-md overflow-hidden">
                 <img
-                    :src="content"
-                    alt="Image message"
+                    :src="sanitizedContent"
+                    :alt="sanitizedText || 'Image message'"
                     class="sm:max-w-[500px] h-auto mx-auto rounded-md cursor-zoom-in"
                     @click="showImagePreview = true"
                 />
@@ -47,38 +59,17 @@
                     <UIcon name="lucide:image" class="h-4 w-4 text-white" />
                 </div>
             </div>
-            <!-- Modal for full-screen image preview -->
-            <Transition
-                enter-active-class="animate__animated animate__fadeIn animate__faster"
-                leave-active-class="animate__animated animate__fadeOut animate__faster"
-            >
-                <div
-                    v-show="showImagePreview"
-                    class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-                >
-                    <OnClickOutside @trigger="showImagePreview = false">
-                        <img
-                            :src="content"
-                            class="max-w-full max-h-full"
-                            alt="Full Screen Image"
-                        />
-                    </OnClickOutside>
-                    <button
-                        @click="showImagePreview = false"
-                        class="absolute top-4 right-4 cursor-pointer text-white"
-                    >
-                        <Icon
-                            name="material-symbols:close-rounded"
-                            size="24px"
-                        ></Icon>
-                    </button>
-                </div>
-            </Transition>
+            <!-- Use the new ImagePreview component -->
+            <ImagePreview
+                v-model="showImagePreview"
+                :src="sanitizedContent"
+                :alt="sanitizedText || 'Image message'"
+            />
         </div>
 
         <!-- Video message -->
         <div v-else-if="message_type === 'video'" class="space-y-2">
-            <p class="text-sm mb-5">{{ text }}</p>
+            <p class="text-sm mb-5">{{ sanitizedText }}</p>
             <div class="relative rounded-md overflow-hidden">
                 <div class="rounded-md flex items-center justify-center">
                     <div
@@ -102,7 +93,7 @@
                         @play="isPlayingVideo = true"
                         @pause="isPlayingVideo = false"
                     >
-                        <source :src="content" type="video/mp4" />
+                        <source :src="sanitizedContent" type="video/mp4" />
                     </video>
                     <div
                         class="absolute top-2 right-2 bg-black/40 rounded-full p-1 flex items-center justify-center"
@@ -115,15 +106,16 @@
 
         <!-- Audio message -->
         <div v-else-if="message_type === 'audio'" class="space-y-2">
-            <p class="text-sm">{{ text }}</p>
-            <AudioPlayer :src="content" />
+            <p class="text-sm">{{ sanitizedText }}</p>
+            <AudioPlayer :src="sanitizedContent" />
         </div>
     </UCard>
 </template>
 
 <script setup>
 import { OnClickOutside } from "@vueuse/components";
-import { useMediaControls } from "@vueuse/core";
+import { MessageShareDialog } from "#components";
+import { sanitizeUrl, sanitizeText } from "~/utils/sanitize";
 
 const emit = defineEmits(["delete"]);
 
@@ -133,7 +125,12 @@ const props = defineProps({
     id: Number,
     text: String,
     timestamp: String,
+    is_read: Boolean,
 });
+
+// Sanitize content and text
+const sanitizedContent = computed(() => sanitizeUrl(props.content));
+const sanitizedText = computed(() => sanitizeText(props.text));
 
 const isPlayingVideo = ref(false);
 const showImagePreview = ref(false);
@@ -146,6 +143,13 @@ const messageTypeIcon = computed(() => {
         audio: "i-lucide-volume-2",
     };
     return iconMap[props.message_type] || "i-lucide-message-square";
+});
+
+const overlay = useOverlay();
+const shareMessageModal = overlay.create(MessageShareDialog, {
+    props: {
+        messages: [props],
+    },
 });
 
 function playVideo() {

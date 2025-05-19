@@ -7,7 +7,7 @@ from .inlines import *
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('id', 'receiver',
-                    'message_type', 'content', 'timestamp')
+                    'message_type', 'content', 'timestamp', 'is_read')
     list_filter = ('message_type', 'timestamp')
     search_fields = ('receiver__username',)
     ordering = ('-timestamp',)

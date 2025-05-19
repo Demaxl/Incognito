@@ -4,6 +4,11 @@
             <!-- Logo -->
             <nuxt-link class="flex items-center gap-2" to="/">
                 <UIcon name="i-custom-logo" size="40" />
+                <!-- <img
+                    src="/images/logo_icon_colored.png"
+                    alt="Incognito logo"
+                    class="w-10 h-10"
+                /> -->
             </nuxt-link>
 
             <!-- Mobile Toggle Button -->

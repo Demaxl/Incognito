@@ -60,3 +60,78 @@ class TestMessageModels:
         # Text messages must have text content
         with pytest.raises(ValidationError):
             text_message = message_factory("")
+
+    def test_text_message_min_length(self, message_factory):
+        """Test that text messages must be at least MIN_TEXT_LENGTH characters"""
+
+        with pytest.raises(ValidationError) as exc_info:
+            message_factory("short")
+            assert "Text must be at least" in str(exc_info.value)
+
+        # Test with text exactly at minimum length
+        text_message = message_factory("1234567890")
+        assert text_message.content.text == "1234567890"
+
+    def test_media_message_caption_min_length(self, message_factory):
+        """Test that media message captions must be at least MIN_TEXT_LENGTH characters if provided"""
+        # Test Image message
+        image = SimpleUploadedFile("image.jpg", b"file_content")
+        message = message_factory(image, message_type=Message.IMAGE)
+
+        # Test with caption shorter than minimum length
+        with pytest.raises(ValidationError) as exc_info:
+            message.content.text = "short"
+            message.content.save()
+            assert "Text must be at least" in str(exc_info.value)
+
+        # Test with valid caption
+        message.content.text = "This is a valid caption that meets the minimum length requirement"
+        message.content.save()
+        assert len(message.content.text) >= 10
+
+        # Test Video message
+        video = SimpleUploadedFile("video.mp4", b"file_content")
+        message = message_factory(video, message_type=Message.VIDEO)
+
+        # Test with caption shorter than minimum length
+        with pytest.raises(ValidationError) as exc_info:
+            message.content.text = "short"
+            message.content.save()
+        assert "Text must be at least" in str(exc_info.value)
+
+        # Test with valid caption
+        message.content.text = "This is a valid caption that meets the minimum length requirement"
+        message.content.save()
+        assert len(message.content.text) >= 10
+
+        # Test Audio message
+        audio = SimpleUploadedFile("audio.mp3", b"file_content")
+        message = message_factory(audio, message_type=Message.AUDIO)
+
+        # Test with caption shorter than minimum length
+        with pytest.raises(ValidationError) as exc_info:
+            message.content.text = "short"
+            message.content.save()
+        assert "Text must be at least" in str(exc_info.value)
+
+        # Test with valid caption
+        message.content.text = "This is a valid caption that meets the minimum length requirement"
+        message.content.save()
+        assert len(message.content.text) >= 10
+
+    def test_media_message_empty_caption(self, message_factory):
+        """Test that media messages can have empty captions"""
+        # Test Image message
+        image = SimpleUploadedFile("image.jpg", b"file_content")
+        message = message_factory(image, message_type=Message.IMAGE)
+        assert message.content.text is None
+
+        # Test Video message
+        video = SimpleUploadedFile("video.mp4", b"file_content")
+        message = message_factory(video, message_type=Message.VIDEO)
+        assert message.content.text is None
+
+        # Test Audio message
+        audio = SimpleUploadedFile("audio.mp3", b"file_content")
+        message = message_factory(audio, message_type=Message.AUDIO)
+        assert message.content.text is None

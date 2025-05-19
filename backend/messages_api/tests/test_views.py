@@ -44,8 +44,8 @@ class TestMessageViewSet:
         client, user = authenticated_client
 
         # Create messages for the user
-        message1 = message_factory("Message 1", receiver=user)
-        message2 = message_factory("Message 2", receiver=user)
+        message1 = message_factory("Text Message 1", receiver=user)
+        message2 = message_factory("Text Message 2", receiver=user)
         # Create message for another user
         other_message = message_factory("Other message")
 
@@ -110,3 +110,29 @@ class TestMessageViewSet:
         url = reverse('messages-list')
         response = api_client.get(url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_messages_marked_as_read_on_list(self, authenticated_client, message_factory):
+        """Test that messages are marked as read when listed"""
+        client, user = authenticated_client
+
+        # Create unread messages for the user
+        message1 = message_factory("Text Message 1", receiver=user)
+        message2 = message_factory("Text Message 2", receiver=user)
+
+        # Verify messages are initially unread
+        assert not message1.is_read
+        assert not message2.is_read
+
+        # List messages
+        url = reverse('messages-list')
+        response = client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # Refresh messages from database
+        message1.refresh_from_db()
+        message2.refresh_from_db()
+
+        # Verify messages are now marked as read
+        assert message1.is_read
+        assert message2.is_read

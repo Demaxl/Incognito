@@ -38,6 +38,7 @@
                     <UTooltip text="Share link" :delayDuration="0">
                         <UButton
                             variant="outline"
+                            class="cursor-pointer"
                             size="xl"
                             icon="material-symbols:share-outline"
                             @click="modal.open()"
@@ -47,25 +48,81 @@
             </UCard>
             <div class="flex items-center justify-between">
                 <UTabs
+                    v-model="activeTab"
                     :items="tabItems"
                     size="lg"
                     :content="false"
                     :ui="{ trigger: 'basis-[fit-content] px-3 py-1' }"
                 >
                 </UTabs>
-                <div class="text-sm text-gray-500">
-                    {{ messages.length }} messages
+                <div class="flex items-center gap-2">
+                    <div class="text-sm text-gray-500">
+                        {{ messages.length }} messages
+                    </div>
+                    <UTooltip text="Refresh messages" :delayDuration="0">
+                        <UButton
+                            variant="outline"
+                            size="sm"
+                            icon="lucide:refresh-cw"
+                            class="cursor-pointer"
+                            :class="{ 'animate-spin': isLoading }"
+                            @click="refreshMessages"
+                            :disabled="isLoading"
+                        />
+                    </UTooltip>
                 </div>
             </div>
             <div class="mt-4 space-y-4 block">
                 <TransitionGroup name="list">
                     <MessageItem
-                        v-for="message in messages"
+                        v-for="message in filteredMessages"
                         :key="message.id"
                         v-bind="message"
                         @delete="removeMessageItem"
                     />
                 </TransitionGroup>
+
+                <UCard
+                    v-if="filteredMessages.length === 0 && !isLoading"
+                    class="text-center py-8"
+                >
+                    <template #header>
+                        <div class="flex flex-col items-center gap-2">
+                            <Icon
+                                name="lucide:inbox"
+                                class="h-12 w-12 text-primary-400"
+                            />
+                            <h3 class="text-lg font-medium">
+                                {{
+                                    activeTab === "unread"
+                                        ? "No unread messages"
+                                        : "No messages yet"
+                                }}
+                            </h3>
+                        </div>
+                    </template>
+                    <p class="text-gray-500">
+                        {{
+                            activeTab === "unread"
+                                ? "You've read all your messages"
+                                : "Share your link to start receiving anonymous messages"
+                        }}
+                    </p>
+                </UCard>
+
+                <UCard v-if="isLoading" class="text-center py-8">
+                    <template #header>
+                        <div class="flex flex-col items-center gap-2">
+                            <Icon
+                                name="lucide:loader-circle"
+                                class="h-12 w-12 text-primary-400 animate-spin"
+                            />
+                            <h3 class="text-lg font-medium">
+                                Loading messages...
+                            </h3>
+                        </div>
+                    </template>
+                </UCard>
             </div>
         </div>
     </main>
@@ -81,16 +138,19 @@ const tabItems = [
     {
         label: "All Messages",
         slot: "all",
+        value: "all",
     },
     {
         label: "Unread",
         slot: "unread",
+        value: "unread",
     },
 ];
 
 const messages = ref([]);
 const toast = useToast();
 const overlay = useOverlay();
+const isLoading = ref(false);
 
 const {
     public: { siteDomain },
@@ -108,6 +168,15 @@ const modal = overlay.create(LinkShareDialog, {
 
 const { copyToClipboard } = useCopyToClipboard();
 
+const activeTab = ref("all");
+
+const filteredMessages = computed(() => {
+    if (activeTab.value === "unread") {
+        return messages.value.filter((message) => !message.is_read);
+    }
+    return messages.value;
+});
+
 function copyLinkToClipboard() {
     copyToClipboard(linkValue.value, {
         successTitle: "Link Copied",
@@ -123,7 +192,13 @@ function removeMessageItem(message_props) {
     messages.value.splice(index, 1);
     toast.add({
         title: "Message deleted",
-        description: `Successfully deleted message: ${message_text}`,
+        description: `Successfully deleted message: ${
+            message_text ||
+            `${
+                message_props.message_type.charAt(0).toUpperCase() +
+                message_props.message_type.slice(1)
+            } message`
+        }`,
         color: "primary",
         actions: [
             {
@@ -131,18 +206,109 @@ function removeMessageItem(message_props) {
                 color: "primary",
                 icon: "material-symbols:undo",
                 variant: "outline",
-                onClick: () => {
-                    messages.value.splice(index, 0, message_props);
-                    // TODO: Add undo functionality. Send API response to server to undo deletion
+                onClick: async () => {
+                    try {
+                        const { sendMessage } = useMessagesAPI();
+                        const formData = new FormData();
+
+                        // Add all message properties to FormData
+                        formData.append(
+                            "message_type",
+                            message_props.message_type
+                        );
+                        formData.append(
+                            "receiver",
+                            useAuthStore().userData?.username
+                        );
+
+                        // Only append text_content if it exists and is not empty
+                        if (message_props.text && message_props.text.trim()) {
+                            formData.append("text_content", message_props.text);
+                        }
+
+                        // If there's media content, add it back
+                        if (message_props.content) {
+                            // Fetch the media content and convert to File
+                            const response = await fetch(message_props.content);
+                            const blob = await response.blob();
+
+                            // Determine the correct file extension and MIME type
+                            let fileExtension;
+                            let mimeType;
+
+                            switch (message_props.message_type) {
+                                case "image":
+                                    fileExtension = "jpg";
+                                    mimeType = "image/jpeg";
+                                    break;
+                                case "video":
+                                    fileExtension = "mp4";
+                                    mimeType = "video/mp4";
+                                    break;
+                                case "audio":
+                                    fileExtension = "mp3";
+                                    mimeType = "audio/mpeg";
+                                    break;
+                                default:
+                                    fileExtension = "bin";
+                                    mimeType = blob.type;
+                            }
+
+                            const file = new File(
+                                [blob],
+                                `restored-${Date.now()}.${fileExtension}`,
+                                {
+                                    type: mimeType,
+                                }
+                            );
+
+                            formData.append("media_content", file);
+                        }
+
+                        const { status, data } = await sendMessage(formData);
+                        if (status === 201) {
+                            // Add the message back to the UI
+                            messages.value.splice(index, 0, data);
+                            toast.add({
+                                title: "Message restored",
+                                description:
+                                    "The message has been successfully restored",
+                                color: "success",
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Error restoring message:", error);
+                        toast.add({
+                            title: "Error",
+                            description: "Failed to restore message",
+                            color: "error",
+                        });
+                    }
                 },
             },
         ],
     });
 }
 
+async function refreshMessages() {
+    isLoading.value = true;
+    try {
+        const { fetchMessages } = useMessagesAPI();
+        messages.value = await fetchMessages();
+    } catch (error) {
+        console.error("Error fetching messages:", error);
+        toast.add({
+            title: "Error",
+            description: "Failed to load messages",
+            color: "error",
+        });
+    } finally {
+        isLoading.value = false;
+    }
+}
+
 onMounted(async () => {
-    const { fetchMessages } = useMessagesAPI();
-    messages.value = await fetchMessages();
+    await refreshMessages();
 });
 </script>
 
