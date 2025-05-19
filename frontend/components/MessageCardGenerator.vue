@@ -18,10 +18,10 @@
     > -->
         <!-- Visual effects -->
         <div class="absolute top-0 left-0 opacity-50">
-            <LucideQuote />
+            <IconLucideQuote />
         </div>
         <div class="absolute bottom-0 right-0 opacity-50 rotate-180">
-            <LucideQuote />
+            <IconLucideQuote />
         </div>
         <div
             class="absolute top-12 right-12 w-20 h-20 rounded-full bg-white/30"
@@ -60,6 +60,63 @@
                         @load="onImageLoad"
                         ref="messageImage"
                     />
+                </div>
+            </div>
+
+            <!-- Video Message -->
+            <div
+                v-else-if="message.message_type === 'video'"
+                class="flex flex-col items-center gap-4"
+            >
+                <p
+                    v-if="message.text"
+                    class="text-center text-4xl font-light leading-relaxed"
+                >
+                    {{ message.text }}
+                </p>
+                <div
+                    v-else
+                    class="text-center text-4xl font-light leading-relaxed"
+                >
+                    Video Message
+                </div>
+                <div
+                    class="relative w-[800px] h-[400px] bg-transparent flex items-center justify-center"
+                >
+                    <!-- Video thumbnail with play button overlay -->
+                    <div
+                        class="w-full h-full flex items-center justify-center rounded-lg"
+                    >
+                        <IconLucideVideo class="h-32 w-32 fill-white" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Message -->
+            <div
+                v-else-if="message.message_type === 'audio'"
+                class="flex flex-col items-center gap-4"
+            >
+                <p
+                    v-if="message.text"
+                    class="text-center text-4xl font-light leading-relaxed"
+                >
+                    {{ message.text }}
+                </p>
+                <div
+                    v-else
+                    class="text-center text-4xl font-light leading-relaxed"
+                >
+                    Audio Message
+                </div>
+                <div
+                    class="relative w-[800px] h-[200px] bg-transparent flex items-center justify-center"
+                >
+                    <div
+                        class="w-full h-full flex items-center justify-center rounded-lg"
+                    >
+                        <IconLucideAudio class="h-32 w-32 fill-white" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -152,7 +209,7 @@ const generateImage = () => {
 
 onMounted(() => {
     // For text messages, generate immediately
-    if (props.message.message_type === "text") {
+    if (["text", "video", "audio"].includes(props.message.message_type)) {
         generateImage();
     }
     // For image messages, wait for onImageLoad

@@ -79,7 +79,7 @@
                                             variant="solid"
                                             size="lg"
                                             class="absolute top-2 right-2"
-                                            @click="clearMediaFile"
+                                            @click="clearMediaFile('image')"
                                         >
                                             Change
                                         </UButton>
@@ -174,7 +174,7 @@
                                             variant="solid"
                                             size="lg"
                                             class="absolute top-2 right-2"
-                                            @click="clearMediaFile"
+                                            @click="clearMediaFile('video')"
                                         >
                                             Change
                                         </UButton>
@@ -259,7 +259,9 @@
                                                             icon="lucide:trash-2"
                                                             class="cursor-pointer"
                                                             @click="
-                                                                clearMediaFile
+                                                                clearMediaFile(
+                                                                    'audio'
+                                                                )
                                                             "
                                                         >
                                                             <span

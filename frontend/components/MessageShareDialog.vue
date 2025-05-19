@@ -120,10 +120,10 @@
                                     <UButton
                                         variant="soft"
                                         color="neutral"
-                                        label="Download Image"
+                                        label="Download Message"
                                         icon="i-heroicons-arrow-down-tray"
                                         class="w-full gap-2 flex justify-center py-3 cursor-pointer"
-                                        @click="() => downloadImage(message.id)"
+                                        @click="() => downloadMessage(message)"
                                         :disabled="isGenerating"
                                     >
                                     </UButton>
@@ -189,7 +189,7 @@ const tabs = [
     },
 ];
 
-const { shareViaWebShare } = useShare();
+const { shareViaWebShare, downloadFile } = useShare();
 
 const handleImageGenerated = (messageId, dataUrl) => {
     generatedImages.value = { ...generatedImages.value, [messageId]: dataUrl };
@@ -198,33 +198,43 @@ const handleImageGenerated = (messageId, dataUrl) => {
     }
 };
 
-const downloadImage = (messageId) => {
-    const dataUrl = generatedImages.value[messageId];
-    if (!dataUrl) return;
-
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = `incognito-message-${messageId}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    useToast().add({
-        title: "Image downloaded",
-        description: "Your message card has been saved to your device.",
-    });
-};
-
 const shareToSocialMedia = (platform, messageId) => {
     const message = sanitizedMessages.value.find((m) => m.id === messageId);
     const imageUrl = generatedImages.value[messageId];
-    const shareText = `Check out this anonymous message on Incognito: ${message.text}`;
+    const shareText = `Check out this anonymous message on Incognito: ${
+        message.text || "Media Message"
+    }`;
 
-    // Use Web Share API for most platforms
-    shareViaWebShare({
+    const shareData = {
         title: "Incognito Message",
         text: shareText,
-        file: imageUrl,
+        imageUrl,
+    };
+
+    // For media messages (video/audio), share both the card and the original media
+    if (message.message_type === "video" || message.message_type === "audio") {
+        shareData.mediaUrl = message.content;
+        shareData.mediaType = message.message_type;
+    }
+    shareViaWebShare(shareData);
+};
+
+const downloadMessage = (message) => {
+    const dataUrl = generatedImages.value[message.id];
+    if (!dataUrl) return;
+
+    downloadFile(dataUrl, `incognito-message-${message.id}.png`);
+
+    if (["video", "audio"].includes(message.message_type)) {
+        downloadFile(
+            message.content,
+            `incognito-${message.message_type}-${message.id}.mp4`
+        );
+    }
+
+    useToast().add({
+        title: "Message downloaded",
+        description: "Your message has been saved to your device.",
     });
 };
 </script>

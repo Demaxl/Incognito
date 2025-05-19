@@ -3,194 +3,211 @@ import { useToast } from "#imports";
 export const useShare = () => {
     const toast = useToast();
 
-    const shareViaWebShare = async ({ title, text, url, file }) => {
-        if (process.client && navigator.share) {
-            try {
-                const shareData = {
-                    title,
-                    text,
-                };
-
-                // If we have a file, convert it to a File object
-                if (file) {
-                    // Convert data URL to blob
-                    const response = await fetch(file);
-                    const blob = await response.blob();
-
-                    // Create a File object with a better name and explicit type
-                    const fileName = "incognito-message-" + Date.now() + ".png";
-                    const fileToShare = new File([blob], fileName, {
-                        type: "image/png",
-                        lastModified: new Date().getTime(),
-                    });
-
-                    // Some platforms handle files array better, others prefer a single file
-                    shareData.files = [fileToShare];
-                } else if (url) {
-                    shareData.url = url;
-                }
-
-                // Try to share
-                await navigator.share(shareData);
-                // toast.add({
-                //     title: "Shared successfully!",
-                //     description: "Your content has been shared.",
-                //     color: "success",
-                // });
-                return true;
-            } catch (error) {
-                console.error("Error sharing:", error);
-
-                // If sharing failed, offer fallback
-                if (file) {
-                    // Offer download as fallback
-                    const link = document.createElement("a");
-                    link.href = file;
-                    link.download = "incognito-message-" + Date.now() + ".png";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                    toast.add({
-                        title: "Sharing failed",
-                        description: "The image has been downloaded instead.",
-                        color: "warning",
-                    });
-                }
-                return false;
-            }
-        } else {
-            // Web Share API not supported
-            toast.add({
-                title: "Sharing not supported",
-                description:
-                    "Your browser doesn't support the sharing feature.",
-                color: "error",
-            });
-            return false;
-        }
+    // Helper function to create a File object from a blob
+    const createFileFromBlob = (blob, fileName, fileType) => {
+        return new File([blob], fileName, {
+            type: fileType,
+            lastModified: new Date().getTime(),
+        });
     };
 
-    const shareViaTwitter = ({ text, url }) => {
-        if (process.client) {
-            const shareText = encodeURIComponent(text);
-            const shareUrl = url ? `&url=${encodeURIComponent(url)}` : "";
-            window.open(
-                `https://twitter.com/intent/tweet?text=${shareText}${shareUrl}`,
-                "_blank"
+    // Helper function to fetch and convert URL to blob
+    const fetchAsBlob = async (url) => {
+        const response = await fetch(url);
+        return await response.blob();
+    };
+
+    // Helper function to download a file
+    const downloadFile = (url, fileName) => {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Helper function to show toast notifications
+    const showToast = (title, description, color = "primary") => {
+        toast.add({ title, description, color });
+    };
+
+    // Helper function to prepare media file for sharing
+    const prepareMediaFile = async (mediaUrl, mediaType) => {
+        const mediaBlob = await fetchAsBlob(mediaUrl);
+        const extension = mediaType === "video" ? "mp4" : "mp3";
+        const mimeType = mediaType === "video" ? "video/mp4" : "audio/mpeg";
+        const fileName = `incognito-${mediaType}-${Date.now()}.${extension}`;
+
+        return createFileFromBlob(mediaBlob, fileName, mimeType);
+    };
+
+    // Helper function to prepare card image for sharing
+    const prepareCardImage = async (imageUrl) => {
+        const imageBlob = await fetchAsBlob(imageUrl);
+        const fileName = `incognito-card-${Date.now()}.png`;
+        return createFileFromBlob(imageBlob, fileName, "image/png");
+    };
+
+    // Main sharing function
+    async function shareViaWebShare({
+        title,
+        text,
+        url,
+        imageUrl,
+        mediaUrl,
+        mediaType,
+    }) {
+        if (!process.client || !navigator.share) {
+            showToast(
+                "Sharing not supported",
+                "Your browser doesn't support the sharing feature.",
+                "error"
             );
-            toast.add({
-                title: "Opening Twitter...",
-                description: "Share your content with your followers.",
-                ui: {
-                    progress: "bg-[#3b5998]",
-                },
-            });
+            return false;
         }
+
+        try {
+            const shareData = { title, text, url };
+
+            const filesToShare = [];
+            if (imageUrl) {
+                filesToShare.push(prepareCardImage(imageUrl));
+            }
+            // Handle media messages (video/audio)
+            if (mediaUrl && mediaType) {
+                filesToShare.push(prepareMediaFile(mediaUrl, mediaType));
+            }
+
+            shareData.files = await Promise.all(filesToShare);
+            console.log(shareData);
+            await navigator.share(shareData);
+            return true;
+        } catch (error) {
+            console.error("Error sharing media:", error);
+
+            // Fallback to download if sharing fails
+            if (mediaUrl && mediaType) {
+                downloadFile(
+                    mediaUrl,
+                    `incognito-${mediaType}-${Date.now()}.mp4`
+                );
+            } else if (imageUrl) {
+                downloadFile(imageUrl, `incognito-card-${Date.now()}.png`);
+            }
+            showToast(
+                "Sharing failed",
+                "The message has been downloaded instead.",
+                "warning"
+            );
+            return false;
+        }
+    }
+
+    // Social media sharing functions
+    const shareViaTwitter = ({ text, url }) => {
+        if (!process.client) return;
+
+        const shareText = encodeURIComponent(text);
+        const shareUrl = url ? `&url=${encodeURIComponent(url)}` : "";
+        window.open(
+            `https://twitter.com/intent/tweet?text=${shareText}${shareUrl}`,
+            "_blank"
+        );
+        showToast(
+            "Opening Twitter...",
+            "Share your content with your followers.",
+            "primary"
+        );
     };
 
     const shareViaFacebook = ({ url }) => {
-        if (process.client) {
-            window.open(
-                `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                    url
-                )}`,
-                "_blank"
-            );
-            toast.add({
-                title: "Opening Facebook...",
-                description: "Share your content with your friends.",
-                ui: {
-                    progress: "bg-[#1877f2]",
-                },
-            });
-        }
+        if (!process.client) return;
+
+        window.open(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                url
+            )}`,
+            "_blank"
+        );
+        showToast(
+            "Opening Facebook...",
+            "Share your content with your friends.",
+            "primary"
+        );
     };
 
     const shareViaEmail = ({ subject, body }) => {
-        if (process.client) {
-            const encodedSubject = encodeURIComponent(subject);
-            const encodedBody = encodeURIComponent(body);
-            window.open(
-                `mailto:?subject=${encodedSubject}&body=${encodedBody}`,
-                "_blank"
-            );
-            toast.add({
-                title: "Opening email client...",
-                description: "Share your content via email.",
-                color: "primary",
-            });
-        }
+        if (!process.client) return;
+
+        const encodedSubject = encodeURIComponent(subject);
+        const encodedBody = encodeURIComponent(body);
+        window.open(
+            `mailto:?subject=${encodedSubject}&body=${encodedBody}`,
+            "_blank"
+        );
+        showToast(
+            "Opening email client...",
+            "Share your content via email.",
+            "primary"
+        );
     };
 
     const shareViaInstagram = ({ text }) => {
-        // Instagram doesn't have a direct web sharing API
-        // Usually, people copy the link and paste it in their Instagram bio or stories
         const { copyToClipboard } = useCopyToClipboard();
-        copyToClipboard(text, {
-            showToast: false,
-        });
-        toast.add({
-            title: "Content copied for Instagram!",
-            description: "Paste this content in your Instagram bio or stories.",
-            ui: {
-                progress: "bg-[#e4405f]",
-            },
-        });
+        copyToClipboard(text, { showToast: false });
+        showToast(
+            "Content copied for Instagram!",
+            "Paste this content in your Instagram bio or stories.",
+            "primary"
+        );
     };
 
     const shareViaWhatsApp = ({ text, url }) => {
-        if (process.client) {
-            const shareText = encodeURIComponent(text);
-            const shareUrl = url ? `&url=${encodeURIComponent(url)}` : "";
-            window.open(
-                `https://wa.me/?text=${shareText}${shareUrl}`,
-                "_blank"
-            );
-            toast.add({
-                title: "Opening WhatsApp...",
-                description: "Share your content with your contacts.",
-                color: "success",
-            });
-        }
+        if (!process.client) return;
+
+        const shareText = encodeURIComponent(text);
+        const shareUrl = url ? `&url=${encodeURIComponent(url)}` : "";
+        window.open(`https://wa.me/?text=${shareText}${shareUrl}`, "_blank");
+        showToast(
+            "Opening WhatsApp...",
+            "Share your content with your contacts.",
+            "success"
+        );
     };
 
     const shareViaSnapchat = ({ url }) => {
-        if (process.client) {
-            const snapchatShareUrl = `https://www.snapchat.com/share?link=${encodeURIComponent(
-                url
-            )}`;
-            window.open(snapchatShareUrl, "_blank");
-            toast.add({
-                title: "Opening Snapchat...",
-                description: "Share your content with your friends.",
-                color: "primary",
-                ui: {
-                    progress: "bg-[#c4c237]",
-                },
-            });
-        }
+        if (!process.client) return;
+
+        const snapchatShareUrl = `https://www.snapchat.com/share?link=${encodeURIComponent(
+            url
+        )}`;
+        window.open(snapchatShareUrl, "_blank");
+        showToast(
+            "Opening Snapchat...",
+            "Share your content with your friends.",
+            "primary"
+        );
     };
 
     const shareViaTelegram = ({ text, url }) => {
-        if (process.client) {
-            const shareText = encodeURIComponent(text);
-            const shareUrl = url ? `&url=${encodeURIComponent(url)}` : "";
-            window.open(
-                `https://t.me/share/url?text=${shareText}${shareUrl}`,
-                "_blank"
-            );
-            toast.add({
-                title: "Opening Telegram...",
-                description: "Share your content with your contacts.",
-                ui: {
-                    progress: "bg-[#30ADED]",
-                },
-            });
-        }
+        if (!process.client) return;
+
+        const shareText = encodeURIComponent(text);
+        const shareUrl = url ? `&url=${encodeURIComponent(url)}` : "";
+        window.open(
+            `https://t.me/share/url?text=${shareText}${shareUrl}`,
+            "_blank"
+        );
+        showToast(
+            "Opening Telegram...",
+            "Share your content with your contacts.",
+            "primary"
+        );
     };
 
     return {
+        downloadFile,
         shareViaWebShare,
         shareViaTwitter,
         shareViaFacebook,
