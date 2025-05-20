@@ -77,6 +77,6 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 # TODO
 
 -   Add seo and title tags
--   Add button to refresh messages
+-   Add password reset
 -   add notifications
 -   add size limit to media contents

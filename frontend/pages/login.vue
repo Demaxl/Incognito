@@ -84,13 +84,13 @@
                             class="text-red-500 text-start block text-sm -mt-2"
                         />
                     </div>
-                    <div class="text-right">
+                    <!-- <div class="text-right">
                         <ULink
                             href="/forgot-password"
                             class="text-sm text-primary-500 underline"
                             >Forgot password?</ULink
                         >
-                    </div>
+                    </div> -->
                 </div>
                 <div class="items-center mt-6 flex flex-col space-y-4">
                     <UButton
