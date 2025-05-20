@@ -6,6 +6,28 @@ export const useAuthStore = defineStore(
             State properties
         */
         const userData = ref(null);
+        const csrfToken = ref(null);
+
+        async function getCsrfToken() {
+            try {
+                if (csrfToken.value) {
+                    return csrfToken.value;
+                }
+                const response = await $axios.get("/accounts/set-csrf-cookie", {
+                    withCredentials: true,
+                });
+                csrfToken.value = response.data.csrfToken;
+                return csrfToken.value;
+            } catch (error) {
+                clearCsrfToken();
+                return null;
+            }
+        }
+
+        function clearCsrfToken() {
+            csrfToken.value = null;
+            useCookie("csrftoken").value = null;
+        }
 
         async function hasSession() {
             try {
@@ -31,6 +53,7 @@ export const useAuthStore = defineStore(
                     }
                 );
                 userData.value = response.data.data.user;
+
                 return response;
             } catch (error) {
                 return error.response;
@@ -64,8 +87,17 @@ export const useAuthStore = defineStore(
             return userData.value !== null;
         }
 
-        
-        return { login, logout, signup, hasSession, userData, isAuthenticated };
+        return {
+            login,
+            logout,
+            signup,
+            hasSession,
+            userData,
+            csrfToken,
+            isAuthenticated,
+            getCsrfToken,
+            clearCsrfToken,
+        };
     },
     {
         persist: {
