@@ -8,18 +8,18 @@ env = environ.Env()
 env.read_env(BASE_DIR / '.env')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # Update allowed hosts with your EC2 instance domain/IP
-ALLOWED_HOSTS = [env('ALLOWED_HOST')]
+ALLOWED_HOSTS = [env('ALLOWED_HOST'), "localhost"]
 
 # Security settings
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
 # SECURE_CONTENT_TYPE_NOSNIFF = True
 # SECURE_HSTS_SECONDS = 31536000  # 1 year
 # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
