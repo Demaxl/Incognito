@@ -1,0 +1,19 @@
+[Unit]
+Description=Incognito Django Application
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/Incognito/backend
+Environment="PATH=/home/ubuntu/Incognito/backend/venv/bin"
+EnvironmentFile=/home/ubuntu/Incognito/backend/.env.aws
+ExecStart=/home/ubuntu/Incognito/backend/venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/home/ubuntu/Incognito/backend/incognito.sock \
+    --access-logfile /home/ubuntu/Incognito/backend/logs/access.log \
+    --error-logfile /home/ubuntu/Incognito/backend/logs/error.log \
+    config.wsgi:application
+
+[Install]
+WantedBy=multi-user.target 

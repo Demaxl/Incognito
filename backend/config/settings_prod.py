@@ -1,9 +1,10 @@
 import environ
+import os
 from .settings import *
 
 env = environ.Env()
 
-
+# Read environment variables from .env.prod file
 env.read_env(BASE_DIR / '.env.prod')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -12,7 +13,7 @@ DEBUG = False
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
-# Update allowed hosts with your production domain
+# Update allowed hosts with your EC2 instance domain/IP
 ALLOWED_HOSTS = [env('ALLOWED_HOST')]
 
 # Security settings
@@ -33,29 +34,74 @@ CSRF_TRUSTED_ORIGINS = [
     env('FRONTEND_URL'),
 ]
 
-SESSION_COOKIE_DOMAIN = ".up.railway.app"
-CSRF_COOKIE_DOMAIN = ".up.railway.app"
+# Cookie settings
+SESSION_COOKIE_DOMAIN = env('COOKIE_DOMAIN')
+CSRF_COOKIE_DOMAIN = env('COOKIE_DOMAIN')
 
 SESSION_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SAMESITE = "None"
 
-# Static files
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
+# AWS S3 Configuration
+# Configure S3 storage for both media and static files
+AWS_S3_OPTIONS = {
+    'bucket_name': env('AWS_STORAGE_BUCKET_NAME'),
+    'region_name': env('AWS_S3_REGION_NAME'),
+    'custom_domain': env('AWS_CLOUDFRONT_DOMAIN'),
+    'object_parameters': {
+        'CacheControl': 'max-age=86400',
+    },
+    'default_acl': 'public-read',
+    'querystring_auth': False,
+}
 
-# Media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+        'OPTIONS': {
+            **AWS_S3_OPTIONS,
+            'location': 'media',
+        },
+    },
+    'staticfiles': {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+        'OPTIONS': {
+            **AWS_S3_OPTIONS,
+            'location': 'static',  # Store static files in a 'static' subfolder
+        },
+    },
+}
+
+STATIC_URL = f'https://{env('AWS_CLOUDFRONT_DOMAIN')}/static/'
+MEDIA_URL = f'https://{env('AWS_CLOUDFRONT_DOMAIN')}/media/'
+
 
 # Remove debug toolbar
 INSTALLED_APPS.remove('debug_toolbar')
 MIDDLEWARE.remove('debug_toolbar.middleware.DebugToolbarMiddleware')
 
-# # Email settings
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-# EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-# DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+# Cache configuration (optional, for better performance)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
