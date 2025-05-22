@@ -1,11 +1,11 @@
+from .settings import *
 import environ
 import os
-from .settings import *
 
 env = environ.Env()
 
-# Read environment variables from .env.prod file
-env.read_env(BASE_DIR / '.env.prod')
+# Read environment variables from .env file
+env.read_env(BASE_DIR / '.env')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
