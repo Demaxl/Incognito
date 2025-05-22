@@ -182,7 +182,7 @@ CSRF_TRUSTED_ORIGINS = [
 # ACCOUNT_CHANGE_EMAIL = True
 # ACCOUNT_EMAIL_NOTIFICATIONS = True
 
-ACCOUNT_SIGNUP_FIELDS = ['username*', 'email*', 'password1*']
+ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*']
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'

@@ -67,13 +67,12 @@ export const useAuthStore = defineStore(
                 userData.value = null;
             }
         }
-        async function signup(username, email, password) {
+        async function signup(username, password) {
             try {
                 const response = await $axios.post(
                     "/_allauth/browser/v1/auth/signup",
                     {
                         username,
-                        email,
                         password,
                     }
                 );

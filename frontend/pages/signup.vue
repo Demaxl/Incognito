@@ -41,7 +41,7 @@
                             class="text-red-500 text-start block text-sm -mt-2"
                         />
                     </div>
-                    <div class="space-y-2 flex flex-col">
+                    <!-- <div class="space-y-2 flex flex-col">
                         <label
                             for="email"
                             class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -62,7 +62,7 @@
                             name="email"
                             class="text-red-500 text-start block text-sm -mt-2"
                         />
-                    </div>
+                    </div> -->
                     <div class="space-y-2 flex flex-col">
                         <label
                             for="password"
@@ -203,7 +203,7 @@ const schema = object({
         )
         .min(3, "Username must be at least 3 characters")
         .max(10, "Username cannot be more than 10 characters"),
-    email: string().required("Email is required").email("Invalid email"),
+    // email: string().required("Email is required").email("Invalid email"),
     password: string()
         .required()
         .min(8, "Password must be at least 8 characters")
@@ -213,8 +213,8 @@ const schema = object({
         .required("Confirm password is required"),
 });
 
-async function onSubmit({ username, email, password }, { setFieldError }) {
-    const response = await useAuthStore().signup(username, email, password);
+async function onSubmit({ username, password }, { setFieldError }) {
+    const response = await useAuthStore().signup(username, password);
 
     switch (response.status) {
         case 200:
