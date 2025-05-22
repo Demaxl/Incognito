@@ -50,7 +50,6 @@ AWS_S3_OPTIONS = {
     'object_parameters': {
         'CacheControl': 'max-age=86400',
     },
-    'default_acl': 'public-read',
     'querystring_auth': False,
 }
 
