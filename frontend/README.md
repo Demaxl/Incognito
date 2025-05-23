@@ -79,4 +79,3 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 -   Add seo and title tags
 -   Add password reset
 -   add notifications
--   add size limit to media contents

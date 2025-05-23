@@ -101,3 +101,6 @@ LOGGING = {
         },
     },
 }
+
+# Remove media url base in production
+MEDIA_URL_BASE = ''

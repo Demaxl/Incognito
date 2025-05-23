@@ -156,7 +156,7 @@ const {
     public: { siteDomain },
 } = useRuntimeConfig();
 const linkValue = computed(() => {
-    return `${siteDomain}/message/${useAuthStore().userData?.username}`;
+    return `${siteDomain}/@${useAuthStore().userData?.username}`;
 });
 
 const modal = overlay.create(LinkShareDialog, {

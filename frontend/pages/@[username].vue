@@ -481,7 +481,7 @@ const tabs = [
     },
 ];
 const route = useRoute();
-const username = route.params.username;
+const username = route.params.username.replace("@", "");
 
 /* Refs */
 const text_message = ref("");
@@ -575,6 +575,17 @@ const { isOverDropZone: isOverVideoDropZone } = useDropZone(videoDropZoneRef, {
 /* Functions */
 
 function setMediaFile(file, type) {
+    // Add file size validation (10MB = 10 * 1024 * 1024 bytes)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+        toast.add({
+            title: "File too large",
+            description: "Please select a file smaller than 10MB",
+            color: "error",
+        });
+        return;
+    }
+
     // Create a preview URL for the selected file
     const url = URL.createObjectURL(file);
 
