@@ -1,22 +1,25 @@
 {
-	"folders": [
-		{
-			"path": "frontend"
-		},
-		{
-			"path": "backend"
-		}
-	],
-	"settings": {
-		"files.associations": {
-			"*.css": "css"
-		},
-		"tailwindCSS.classAttributes": [
-			"class",
-			"ui",
-			"active-class",
-			"inactive-class"
-		],
-		"typescript.tsdk": "node_modules/typescript/lib"
-	}
+    "folders": [
+        {
+            "path": "frontend"
+        },
+        {
+            "path": "backend"
+        },
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "*.css": "css"
+        },
+        "tailwindCSS.classAttributes": [
+            "class",
+            "ui",
+            "active-class",
+            "inactive-class"
+        ],
+        "typescript.tsdk": "node_modules/typescript/lib"
+    }
 }
