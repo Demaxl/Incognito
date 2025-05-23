@@ -28,10 +28,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    env('FRONTEND_URL'),
+    env('FRONTEND_URL'), env('AWS_CLOUDFRONT_DOMAIN')
 ]
 CSRF_TRUSTED_ORIGINS = [
-    env('FRONTEND_URL'),
+    env('FRONTEND_URL'), env('AWS_CLOUDFRONT_DOMAIN')
 ]
 
 # Cookie settings
