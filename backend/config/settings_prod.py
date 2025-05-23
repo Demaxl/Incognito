@@ -38,9 +38,6 @@ CSRF_TRUSTED_ORIGINS = [
 SESSION_COOKIE_DOMAIN = env('COOKIE_DOMAIN')
 CSRF_COOKIE_DOMAIN = env('COOKIE_DOMAIN')
 
-SESSION_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SAMESITE = "None"
-
 # AWS S3 Configuration
 # Configure S3 storage for both media and static files
 AWS_S3_OPTIONS = {
