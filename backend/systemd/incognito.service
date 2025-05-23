@@ -7,7 +7,8 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/Incognito/backend
 Environment="PATH=/home/ubuntu/Incognito/backend/venv/bin"
-EnvironmentFile=/home/ubuntu/Incognito/backend/.env.aws
+EnvironmentFile=/home/ubuntu/Incognito/backend/.env
+Environment="DJANGO_SETTINGS_MODULE=config.settings_prod"
 ExecStart=/home/ubuntu/Incognito/backend/venv/bin/gunicorn \
     --workers 3 \
     --bind unix:/home/ubuntu/Incognito/backend/incognito.sock \
