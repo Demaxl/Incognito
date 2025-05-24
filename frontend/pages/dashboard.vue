@@ -129,6 +129,18 @@
 </template>
 
 <script setup>
+// Add SEO metadata
+useSeoMeta({
+    title: "Your Inbox",
+    description:
+        "Manage your anonymous inbox, view and respond to messages sent to you. Your personal space for anonymous communication.",
+    ogTitle: "Your Incognito Inbox - Anonymous Messaging Platform",
+    ogDescription:
+        "Manage your anonymous inbox, view and respond to messages sent to you. Your personal space for anonymous communication.",
+    ogType: "website",
+    robots: "noindex, follow", // Prevent dashboard from being indexed since it's a private page
+});
+
 definePageMeta({
     middleware: ["auth"],
 });

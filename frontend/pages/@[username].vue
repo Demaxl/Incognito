@@ -777,4 +777,16 @@ onBeforeUnmount(() => {
     }
     clearMediaFile();
 });
+
+// Add SEO metadata
+useSeoMeta({
+    title: `Send Anonymous Message to ${username}`,
+    description: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
+    ogTitle: `Send Anonymous Message to ${username} | Incognito`,
+    ogDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
+    ogType: "website",
+    twitterTitle: `Send Anonymous Message to ${username} | Incognito`,
+    twitterDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
+    robots: "noindex, follow", // Prevent individual message pages from being indexed
+});
 </script>

@@ -181,6 +181,18 @@
 </template>
 
 <script setup>
+// Add SEO metadata
+useSeoMeta({
+    title: "Create Account",
+    description:
+        "Create your Incognito account to start receiving anonymous messages. Sign up in seconds and get your personal anonymous inbox.",
+    ogTitle: "Create Your Incognito Account - Anonymous Messaging Platform",
+    ogDescription:
+        "Create your Incognito account to start receiving anonymous messages. Sign up in seconds and get your personal anonymous inbox.",
+    ogType: "website",
+    robots: "noindex, follow", // Prevent signup page from being indexed
+});
+
 definePageMeta({
     middleware: ["no-auth"],
 });

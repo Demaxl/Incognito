@@ -444,6 +444,20 @@
 </template>
 
 <script setup>
+// Add SEO metadata
+useSeoMeta({
+    title: "How It Works",
+    description:
+        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
+    ogTitle: "How Incognito Works - Anonymous Messaging Platform",
+    ogDescription:
+        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
+    ogType: "website",
+    twitterTitle: "How Incognito Works - Anonymous Messaging Platform",
+    twitterDescription:
+        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
+});
+
 const steps = [
     {
         title: "Create Your Account",

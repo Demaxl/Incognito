@@ -42,4 +42,20 @@ export default defineNuxtConfig({
             siteDomain: "http://localhost:3000",
         },
     },
+    app: {
+        head: {
+            title: "Incognito - Anonymous Messaging Made Simple",
+            meta: [
+                { name: "format-detection", content: "telephone=no" },
+                { name: "theme-color", content: "#46a6f8" },
+            ],
+            link: [
+                {
+                    rel: "icon",
+                    type: "image/x-icon",
+                    href: "/images/logo_icon_colored.png",
+                },
+            ],
+        },
+    },
 });

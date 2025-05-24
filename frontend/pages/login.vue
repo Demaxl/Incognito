@@ -119,6 +119,18 @@
 </template>
 
 <script setup>
+// Add SEO metadata
+useSeoMeta({
+    title: "Login",
+    description:
+        "Login to your Incognito account to manage your anonymous inbox and view your messages.",
+    ogTitle: "Login to Incognito - Anonymous Messaging Platform",
+    ogDescription:
+        "Login to your Incognito account to manage your anonymous inbox and view your messages.",
+    ogType: "website",
+    robots: "noindex, follow", // Prevent login page from being indexed
+});
+
 definePageMeta({
     middleware: ["no-auth"],
 });
