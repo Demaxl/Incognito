@@ -122,20 +122,20 @@
         </div>
         <div class="mt-auto pt-6">
             <div class="w-[50%] h-1 bg-white/90 mx-auto mb-4"></div>
-            <p class="text-center text-6xl font-light">@{{ username }}</p>
+            <p class="text-center opacity-90 text-5xl font-light">
+                @{{ username }}
+            </p>
         </div>
         <div class="mt-32 flex flex-col items-center">
-            <div
-                class="mb-2 bg-white/30 rounded-full p-6 flex items-center justify-center"
-            >
+            <div class="mb-2 rounded-full p-6 flex items-center justify-center">
                 <img
                     src="/images/logo_icon_colored.png"
                     alt="Incognito logo"
-                    class="w-[150px] h-[150px]"
+                    class="w-[100px] h-[100px]"
                 />
             </div>
             <!-- <UIcon name="i-custom-logo-text" size="40px" class="text-white" /> -->
-            <p class="text-5xl font-bold tracking-wider">#INCOGNITO</p>
+            <p class="text-4xl font-bold tracking-wider">#INCOGNITO</p>
             <!-- <UIcon name="i-custom-logo" size="40" /> -->
         </div>
     </div>

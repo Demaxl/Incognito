@@ -3,12 +3,16 @@
         <div class="flex flex-row items-center justify-between">
             <!-- Logo -->
             <nuxt-link class="flex items-center gap-2" to="/">
-                <UIcon name="i-custom-logo" size="40" />
-                <!-- <img
+                <!-- <UIcon name="i-custom-logo" size="40" /> -->
+                <img
                     src="/images/logo_icon_colored.png"
                     alt="Incognito logo"
                     class="w-10 h-10"
-                /> -->
+                />
+                <span
+                    class="text-2xl font-bold tracking-widest bg-gradient-to-r from-secondary to-primary-500 bg-clip-text text-transparent"
+                    >Incognito</span
+                >
             </nuxt-link>
 
             <!-- Mobile Toggle Button -->
