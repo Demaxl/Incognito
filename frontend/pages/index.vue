@@ -88,19 +88,3 @@
         </section>
     </main>
 </template>
-
-<script setup>
-// Add SEO metadata
-useSeoMeta({
-    title: "Anonymous Messaging Made Simple",
-    description:
-        "Create your personal inbox, share your link, and receive anonymous messages from anyone. Start receiving anonymous messages today!",
-    ogTitle: "Incognito - Anonymous Messaging Made Simple",
-    ogDescription:
-        "Create your personal inbox, share your link, and receive anonymous messages from anyone. Start receiving anonymous messages today!",
-    ogType: "website",
-    twitterTitle: "Incognito - Anonymous Messaging Made Simple",
-    twitterDescription:
-        "Create your personal inbox, share your link, and receive anonymous messages from anyone. Start receiving anonymous messages today!",
-});
-</script>

@@ -138,6 +138,12 @@ useSeoMeta({
     ogDescription:
         "Manage your anonymous inbox, view and respond to messages sent to you. Your personal space for anonymous communication.",
     ogType: "website",
+    ogUrl: `${useRuntimeConfig().public.siteDomain}/dashboard`,
+    ogImageAlt: "Your Incognito Inbox - Anonymous Messaging Platform",
+    twitterTitle: "Your Incognito Inbox - Anonymous Messaging Platform",
+    twitterDescription:
+        "Manage your anonymous inbox, view and respond to messages sent to you. Your personal space for anonymous communication.",
+    twitterImageAlt: "Your Incognito Inbox - Anonymous Messaging Platform",
     robots: "noindex, follow", // Prevent dashboard from being indexed since it's a private page
 });
 

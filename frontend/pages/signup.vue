@@ -190,6 +190,13 @@ useSeoMeta({
     ogDescription:
         "Create your Incognito account to start receiving anonymous messages. Sign up in seconds and get your personal anonymous inbox.",
     ogType: "website",
+    ogImageAlt: "Create Your Incognito Account - Anonymous Messaging Platform",
+    twitterTitle:
+        "Create Your Incognito Account - Anonymous Messaging Platform",
+    twitterDescription:
+        "Create your Incognito account to start receiving anonymous messages. Sign up in seconds and get your personal anonymous inbox.",
+    twitterImageAlt:
+        "Create Your Incognito Account - Anonymous Messaging Platform",
     robots: "noindex, follow", // Prevent signup page from being indexed
 });
 

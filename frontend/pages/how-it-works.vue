@@ -453,9 +453,12 @@ useSeoMeta({
     ogDescription:
         "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
     ogType: "website",
+    ogUrl: `${useRuntimeConfig().public.siteDomain}/how-it-works`,
+    ogImageAlt: "How Incognito Works - Anonymous Messaging Platform",
     twitterTitle: "How Incognito Works - Anonymous Messaging Platform",
     twitterDescription:
         "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
+    twitterImageAlt: "How Incognito Works - Anonymous Messaging Platform",
 });
 
 const steps = [

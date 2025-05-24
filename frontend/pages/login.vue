@@ -128,6 +128,11 @@ useSeoMeta({
     ogDescription:
         "Login to your Incognito account to manage your anonymous inbox and view your messages.",
     ogType: "website",
+    ogImageAlt: "Login to Incognito - Anonymous Messaging Platform",
+    twitterTitle: "Login to Incognito - Anonymous Messaging Platform",
+    twitterDescription:
+        "Login to your Incognito account to manage your anonymous inbox and view your messages.",
+    twitterImageAlt: "Login to Incognito - Anonymous Messaging Platform",
     robots: "noindex, follow", // Prevent login page from being indexed
 });
 

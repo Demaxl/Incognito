@@ -785,8 +785,11 @@ useSeoMeta({
     ogTitle: `Send Anonymous Message to ${username} | Incognito`,
     ogDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
     ogType: "website",
+    ogUrl: `${useRuntimeConfig().public.siteDomain}/@${username}`,
+    ogImageAlt: `Send Anonymous Message to ${username} | Incognito`,
     twitterTitle: `Send Anonymous Message to ${username} | Incognito`,
     twitterDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
+    twitterImageAlt: `Send Anonymous Message to ${username} | Incognito`,
     robots: "noindex, follow", // Prevent individual message pages from being indexed
 });
 </script>
