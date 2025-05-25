@@ -27,7 +27,10 @@ urlpatterns = [
     path('accounts/set-csrf-cookie',
          user_views.login_set_cookie, name='set-csrf-cookie'),
 
+
     path("api/", include("messages_api.urls")),
+    path('api/check-username',
+         user_views.check_username, name='check-username'),
 
     # Include the API endpoints:
     path("_allauth/", include("allauth.headless.urls")),

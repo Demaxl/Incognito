@@ -63,10 +63,10 @@ useSeoMeta({
     appleMobileWebAppCapable: "yes",
     appleMobileWebAppStatusBarStyle: "default",
     appleMobileWebAppTitle: "Incognito",
-    appleTouchIcon: "/images/apple-touch-icon.png",
+    appleTouchIcon: `https://${siteDomain}/images/apple-touch-icon.png`,
     msapplicationTileColor: "#46a6f8",
-    msapplicationTileImage: "/images/mstile-144x144.png",
-    msapplicationConfig: "/browserconfig.xml",
+    msapplicationTileImage: `https://${siteDomain}/images/mstile-144x144.png`,
+    msapplicationConfig: `https://${siteDomain}/browserconfig.xml`,
 
     // Robots
     robots: "index, follow",

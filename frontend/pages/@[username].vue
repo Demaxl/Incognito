@@ -449,6 +449,33 @@
 </template>
 
 <script setup>
+const route = useRoute();
+const username = route.params.username.replace("@", "");
+
+// Add SEO metadata
+useSeoMeta({
+    title: `Send Anonymous Message to ${username}`,
+    description: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
+    ogTitle: `Send Anonymous Message to ${username} | Incognito`,
+    ogDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
+    ogType: "website",
+    ogUrl: `${useRuntimeConfig().public.siteDomain}/@${username}`,
+    ogImageAlt: `Send Anonymous Message to ${username} | Incognito`,
+    twitterTitle: `Send Anonymous Message to ${username} | Incognito`,
+    twitterDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
+    twitterImageAlt: `Send Anonymous Message to ${username} | Incognito`,
+    robots: "noindex, follow", // Prevent individual message pages from being indexed
+});
+
+// Check if username is available
+const response = await useApi().get(`/check-username?username=${username}`);
+if (!response.data.available) {
+    throw createError({
+        statusCode: 404,
+        statusMessage: `Username ${username} not found`,
+    });
+}
+
 import { useDropZone } from "@vueuse/core";
 
 /* Constants */
@@ -480,8 +507,6 @@ const tabs = [
         value: "audio",
     },
 ];
-const route = useRoute();
-const username = route.params.username.replace("@", "");
 
 /* Refs */
 const text_message = ref("");
@@ -776,20 +801,5 @@ onBeforeUnmount(() => {
         mediaRecorder.value.stop();
     }
     clearMediaFile();
-});
-
-// Add SEO metadata
-useSeoMeta({
-    title: `Send Anonymous Message to ${username}`,
-    description: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
-    ogTitle: `Send Anonymous Message to ${username} | Incognito`,
-    ogDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
-    ogType: "website",
-    ogUrl: `${useRuntimeConfig().public.siteDomain}/@${username}`,
-    ogImageAlt: `Send Anonymous Message to ${username} | Incognito`,
-    twitterTitle: `Send Anonymous Message to ${username} | Incognito`,
-    twitterDescription: `Send an anonymous message to ${username} on Incognito. Share your thoughts, feedback, or questions without revealing your identity.`,
-    twitterImageAlt: `Send Anonymous Message to ${username} | Incognito`,
-    robots: "noindex, follow", // Prevent individual message pages from being indexed
 });
 </script>

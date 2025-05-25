@@ -76,6 +76,5 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 # TODO
 
--   Add seo and title tags
 -   Add password reset
 -   add notifications
