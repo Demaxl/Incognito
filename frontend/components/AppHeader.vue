@@ -46,6 +46,12 @@
                 <template v-else>
                     <UButton
                         class="px-3 py-2 font-medium"
+                        size="xl"
+                        to="/dashboard"
+                        label="View your inbox"
+                    />
+                    <UButton
+                        class="px-3 py-2 font-medium"
                         color="neutral"
                         variant="outline"
                         size="xl"
@@ -70,20 +76,38 @@
                 ref="mobileMenu"
             >
                 <div class="flex flex-col gap-2 py-2">
-                    <UButton
-                        class="px-3 py-2 font-medium w-full"
-                        color="neutral"
-                        variant="outline"
-                        size="xl"
-                        to="/login"
-                        label="Login"
-                    />
-                    <UButton
-                        class="px-3 py-2 font-medium w-full"
-                        size="xl"
-                        to="/signup"
-                        label="Sign up"
-                    />
+                    <template v-if="!isAuthenticated">
+                        <UButton
+                            class="px-3 py-2 font-medium w-full"
+                            color="neutral"
+                            variant="outline"
+                            size="xl"
+                            to="/login"
+                            label="Login"
+                        />
+                        <UButton
+                            class="px-3 py-2 font-medium w-full"
+                            size="xl"
+                            to="/signup"
+                            label="Sign up"
+                        />
+                    </template>
+                    <template v-else>
+                        <UButton
+                            class="px-3 py-2 font-medium w-full"
+                            size="xl"
+                            to="/dashboard"
+                            label="View your inbox"
+                        />
+                        <UButton
+                            class="px-3 py-2 font-medium w-full"
+                            color="neutral"
+                            variant="outline"
+                            size="xl"
+                            to="/logout"
+                            label="Logout"
+                        />
+                    </template>
                 </div>
             </div>
         </Transition>
