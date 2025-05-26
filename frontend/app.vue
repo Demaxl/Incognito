@@ -37,7 +37,7 @@ useSeoMeta({
     ogDescription:
         "Create your personal inbox, share your link, and receive anonymous messages from anyone.",
     ogType: "website",
-    ogUrl: siteDomain,
+    ogUrl: `https://www.${siteDomain}`,
     ogImage: `https://${siteDomain}/images/og-image.png`,
     ogImageWidth: "1200",
     ogImageHeight: "630",
@@ -60,7 +60,7 @@ useSeoMeta({
 
     // Additional Meta Tags
     themeColor: "#46a6f8",
-    appleMobileWebAppCapable: "yes",
+    mobileWebAppCapable: "yes",
     appleMobileWebAppStatusBarStyle: "default",
     appleMobileWebAppTitle: "Incognito",
     appleTouchIcon: `https://${siteDomain}/images/apple-touch-icon.png`,
@@ -71,7 +71,7 @@ useSeoMeta({
     // Robots
     robots: "index, follow",
     googlebot: "index, follow",
-    canonical: siteDomain,
+    canonical: `https://www.${siteDomain}`,
 });
 </script>
 

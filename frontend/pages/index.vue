@@ -18,21 +18,25 @@
                     anonymous messages from anyone.
                 </p>
                 <div class="flex flex-col gap-4 sm:flex-row">
-                    <UButton
-                        size="xl"
-                        trailing-icon="i-lucide-arrow-right"
-                        :to="
-                            useAuthStore().isAuthenticated()
-                                ? '/dashboard'
-                                : '/signup'
-                        "
-                        class="px-8 h-11"
-                    >
-                        {{
-                            useAuthStore().isAuthenticated() ? "View" : "Create"
-                        }}
-                        your inbox
-                    </UButton>
+                    <ClientOnly>
+                        <UButton
+                            size="xl"
+                            trailing-icon="i-lucide-arrow-right"
+                            :to="
+                                useAuthStore().isAuthenticated()
+                                    ? '/dashboard'
+                                    : '/signup'
+                            "
+                            class="px-8 h-11"
+                        >
+                            {{
+                                useAuthStore().isAuthenticated()
+                                    ? "View"
+                                    : "Create"
+                            }}
+                            your inbox
+                        </UButton>
+                    </ClientOnly>
                     <UButton
                         variant="outline"
                         size="xl"
