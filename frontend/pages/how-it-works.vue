@@ -292,17 +292,18 @@
                                 class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-500/10"
                             >
                                 <Icon
-                                    name="lucide:lock-keyhole"
+                                    name="material-symbols:media-link-outline"
                                     class="h-6 w-6 text-primary-500"
                                 />
                             </div>
                             <div>
                                 <h3 class="mb-2 text-xl font-medium">
-                                    Privacy Controls
+                                    Multimedia Messages
                                 </h3>
                                 <p class="text-gray-500">
-                                    Easily manage who can send you messages and
-                                    block unwanted content.
+                                    Receive anonymous text, voice, image, and
+                                    video messages — because emotions aren’t
+                                    always just words.
                                 </p>
                             </div>
                         </div>
@@ -314,17 +315,17 @@
                                 class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-500/10"
                             >
                                 <Icon
-                                    name="lucide:settings"
+                                    name="material-symbols:delivery-truck-speed-outline-rounded"
                                     class="h-6 w-6 text-primary-500"
                                 />
                             </div>
                             <div>
                                 <h3 class="mb-2 text-xl font-medium">
-                                    Customizable Experience
+                                    Fast & Simple Setup
                                 </h3>
                                 <p class="text-gray-500">
-                                    Personalize your inbox, notification
-                                    settings, and message display preferences.
+                                    Sign up in seconds. No friction, no
+                                    confusion — just your inbox and your link.
                                 </p>
                             </div>
                         </div>
@@ -374,11 +375,11 @@
                                 How do I prevent inappropriate messages?
                             </h3>
                             <p class="text-gray-500">
-                                We have automatic content filtering to block
-                                offensive content. Additionally, you can enable
-                                manual approval of messages before they appear
-                                in your inbox, or block specific words and
-                                phrases.
+                                We are working on automatic content filtering
+                                using AI to block offensive content.
+                                Additionally, you can enable manual approval of
+                                messages before they appear in your inbox, or
+                                block specific words and phrases.
                             </p>
                         </UCard>
 
@@ -448,16 +449,16 @@
 useSeoMeta({
     title: "How It Works",
     description:
-        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
+        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous text, images, audio, or video messages from anyone.",
     ogTitle: "How Incognito Works - Anonymous Messaging Platform",
     ogDescription:
-        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
+        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous text, images, audio, or video messages from anyone.",
     ogType: "website",
     ogUrl: `${useRuntimeConfig().public.siteDomain}/how-it-works`,
     ogImageAlt: "How Incognito Works - Anonymous Messaging Platform",
     twitterTitle: "How Incognito Works - Anonymous Messaging Platform",
     twitterDescription:
-        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous messages from anyone.",
+        "Learn how Incognito works in 3 simple steps. Create your account, share your link, and start receiving anonymous text, images, audio, or video messages from anyone.",
     twitterImageAlt: "How Incognito Works - Anonymous Messaging Platform",
 });
 

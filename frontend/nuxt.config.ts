@@ -46,7 +46,7 @@ export default defineNuxtConfig({
     },
     app: {
         head: {
-            title: "Incognito - Anonymous Messaging Made Simple",
+            title: "Get honest thoughts. Anonymously.",
             meta: [
                 { name: "format-detection", content: "telephone=no" },
                 { name: "theme-color", content: "#46a6f8" },

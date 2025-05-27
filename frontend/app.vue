@@ -4,6 +4,7 @@
         <NuxtLoadingIndicator />
         <NuxtLayout>
             <NuxtPage />
+            <Footer />
         </NuxtLayout>
     </UApp>
 </template>
@@ -16,7 +17,7 @@ useSeoMeta({
     // Basic Meta Tags
     titleTemplate: "%s | Incognito",
     description:
-        "Create your personal inbox, share your link, and receive anonymous messages from anyone.",
+        "Create your anonymous inbox, share your link, and receive text, images, audio, or video messages from anyone — all without revealing their identity.",
     applicationName: "Incognito",
     author: "Incognito",
     generator: "Nuxt",
@@ -33,9 +34,9 @@ useSeoMeta({
     },
 
     // Open Graph / Facebook
-    ogTitle: "Incognito - Anonymous Messaging Made Simple",
+    ogTitle: "Get honest thoughts. Anonymously.",
     ogDescription:
-        "Create your personal inbox, share your link, and receive anonymous messages from anyone.",
+        "Create your anonymous inbox, share your link, and receive text, images, audio, or video messages from anyone — all without revealing their identity.",
     ogType: "website",
     ogUrl: `https://www.${siteDomain}`,
     ogImage: `https://${siteDomain}/images/og-image.png`,
@@ -49,9 +50,9 @@ useSeoMeta({
     twitterCard: "summary_large_image",
     twitterSite: "@incognito",
     twitterCreator: "@incognito",
-    twitterTitle: "Incognito - Anonymous Messaging Made Simple",
+    twitterTitle: "Get honest thoughts. Anonymously.",
     twitterDescription:
-        "Create your personal inbox, share your link, and receive anonymous messages from anyone.",
+        "Create your anonymous inbox, share your link, and receive text, images, audio, or video messages from anyone — all without revealing their identity.",
     twitterImage: `https://${siteDomain}/images/og-image.png`,
     twitterImageAlt: "Incognito - Anonymous Messaging Platform",
 
