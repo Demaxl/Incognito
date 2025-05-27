@@ -1,131 +1,130 @@
 <template>
-    <main class="flex-1 p-4 md:p-6">
-        <div class="mx-auto max-w-4xl">
-            <div class="mb-8">
-                <h1 class="mb-2 text-2xl font-bold">Your Inbox</h1>
-                <p class="text-gray-500">
-                    Share your link to receive anonymous messages.
-                </p>
-            </div>
-
-            <UCard class="mb-8">
-                <div class="flex flex-col space-y-1.5">
-                    <h3
-                        class="text-2xl font-semibold leading-none tracking-tight"
-                    >
-                        Your Anonymous Link
-                    </h3>
-                    <p class="text-sm text-gray-500">
-                        Share this link to receive anonymous messages.
-                    </p>
-                </div>
-                <div class="flex items-center gap-2 mt-6">
-                    <UInput
-                        readOnly
-                        :value="linkValue"
-                        class="text-sm w-full"
-                        size="xl"
-                    />
-                    <UTooltip text="Copy link" :delayDuration="0">
-                        <UButton
-                            variant="outline"
-                            class="cursor-pointer"
-                            size="xl"
-                            icon="material-symbols:content-copy-outline"
-                            @click="copyLinkToClipboard"
-                        />
-                    </UTooltip>
-                    <UTooltip text="Share link" :delayDuration="0">
-                        <UButton
-                            variant="outline"
-                            class="cursor-pointer"
-                            size="xl"
-                            icon="material-symbols:share-outline"
-                            @click="modal.open()"
-                        />
-                    </UTooltip>
-                </div>
-            </UCard>
-            <div class="flex items-center justify-between">
-                <UTabs
-                    v-model="activeTab"
-                    :items="tabItems"
-                    size="lg"
-                    :content="false"
-                    :ui="{ trigger: 'basis-[fit-content] px-3 py-1' }"
-                >
-                </UTabs>
-                <div class="flex items-center gap-2">
-                    <div class="text-sm text-gray-500">
-                        {{ messages.length }} messages
-                    </div>
-                    <UTooltip text="Refresh messages" :delayDuration="0">
-                        <UButton
-                            variant="outline"
-                            size="sm"
-                            icon="lucide:refresh-cw"
-                            class="cursor-pointer"
-                            :class="{ 'animate-spin': isLoading }"
-                            @click="refreshMessages"
-                            :disabled="isLoading"
-                        />
-                    </UTooltip>
-                </div>
-            </div>
-            <div class="mt-4 space-y-4 block">
-                <TransitionGroup name="list">
-                    <MessageItem
-                        v-for="message in filteredMessages"
-                        :key="message.id"
-                        v-bind="message"
-                        @delete="removeMessageItem"
-                    />
-                </TransitionGroup>
-
-                <UCard
-                    v-if="filteredMessages.length === 0 && !isLoading"
-                    class="text-center py-8"
-                >
-                    <template #header>
-                        <div class="flex flex-col items-center gap-2">
-                            <Icon
-                                name="lucide:inbox"
-                                class="h-12 w-12 text-primary-400"
-                            />
-                            <h3 class="text-lg font-medium">
-                                {{
-                                    activeTab === "unread"
-                                        ? "No unread messages"
-                                        : "No messages yet"
-                                }}
-                            </h3>
-                        </div>
-                    </template>
+    <ClientOnly>
+        <main class="flex-1 p-4 md:p-6">
+            <div class="mx-auto max-w-4xl">
+                <div class="mb-8">
+                    <h1 class="mb-2 text-2xl font-bold">Your Inbox</h1>
                     <p class="text-gray-500">
-                        {{
-                            activeTab === "unread"
-                                ? "You've read all your messages"
-                                : "Share your link to start receiving anonymous messages"
-                        }}
+                        Share your link to receive anonymous messages.
                     </p>
-                </UCard>
-
-                <UCard v-if="isLoading" class="text-center py-8">
-                    <template #header>
-                        <div class="flex flex-col items-center gap-2">
-                            <Icon
-                                name="lucide:loader-circle"
-                                class="h-12 w-12 text-primary-400 animate-spin"
+                </div>
+                <UCard class="mb-8">
+                    <div class="flex flex-col space-y-1.5">
+                        <h3
+                            class="text-2xl font-semibold leading-none tracking-tight"
+                        >
+                            Your Anonymous Link
+                        </h3>
+                        <p class="text-sm text-gray-500">
+                            Share this link to receive anonymous messages.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 mt-6">
+                        <UInput
+                            readOnly
+                            :value="linkValue"
+                            class="text-sm w-full"
+                            size="xl"
+                        />
+                        <UTooltip text="Copy link" :delayDuration="0">
+                            <UButton
+                                variant="outline"
+                                class="cursor-pointer"
+                                size="xl"
+                                icon="material-symbols:content-copy-outline"
+                                @click="copyLinkToClipboard"
                             />
-                            <h3 class="text-lg font-medium">
-                                Loading messages...
-                            </h3>
-                        </div>
-                    </template>
+                        </UTooltip>
+                        <UTooltip text="Share link" :delayDuration="0">
+                            <UButton
+                                variant="outline"
+                                class="cursor-pointer"
+                                size="xl"
+                                icon="material-symbols:share-outline"
+                                @click="modal.open()"
+                            />
+                        </UTooltip>
+                    </div>
                 </UCard>
+                <div class="flex items-center justify-between">
+                    <UTabs
+                        v-model="activeTab"
+                        :items="tabItems"
+                        size="lg"
+                        :content="false"
+                        :ui="{ trigger: 'basis-[fit-content] px-3 py-1' }"
+                    >
+                    </UTabs>
+                    <div class="flex items-center gap-2">
+                        <div class="text-sm text-gray-500">
+                            {{ messages.length }} messages
+                        </div>
+                        <UTooltip text="Refresh messages" :delayDuration="0">
+                            <UButton
+                                variant="outline"
+                                size="sm"
+                                icon="lucide:refresh-cw"
+                                class="cursor-pointer"
+                                :class="{ 'animate-spin': isLoading }"
+                                @click="refreshMessages"
+                                :disabled="isLoading"
+                            />
+                        </UTooltip>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-4 block">
+                    <TransitionGroup name="list">
+                        <MessageItem
+                            v-for="message in filteredMessages"
+                            :key="message.id"
+                            v-bind="message"
+                            @delete="removeMessageItem"
+                        />
+                    </TransitionGroup>
+                    <UCard
+                        v-if="filteredMessages.length === 0 && !isLoading"
+                        class="text-center py-8"
+                    >
+                        <template #header>
+                            <div class="flex flex-col items-center gap-2">
+                                <Icon
+                                    name="lucide:inbox"
+                                    class="h-12 w-12 text-primary-400"
+                                />
+                                <h3 class="text-lg font-medium">
+                                    {{
+                                        activeTab === "unread"
+                                            ? "No unread messages"
+                                            : "No messages yet"
+                                    }}
+                                </h3>
+                            </div>
+                        </template>
+                        <p class="text-gray-500">
+                            {{
+                                activeTab === "unread"
+                                    ? "You've read all your messages"
+                                    : "Share your link to start receiving anonymous messages"
+                            }}
+                        </p>
+                    </UCard>
+                    <UCard v-if="isLoading" class="text-center py-8">
+                        <template #header>
+                            <div class="flex flex-col items-center gap-2">
+                                <Icon
+                                    name="lucide:loader-circle"
+                                    class="h-12 w-12 text-primary-400 animate-spin"
+                                />
+                                <h3 class="text-lg font-medium">
+                                    Loading messages...
+                                </h3>
+                            </div>
+                        </template>
+                    </UCard>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </ClientOnly>
 </template>
 
 <script setup>

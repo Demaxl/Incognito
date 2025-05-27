@@ -63,7 +63,7 @@ export default defineNuxtConfig({
     nitro: {
         prerender: {
             routes: ["/", "/how-it-works"],
-            ignore: ["/dashboard"],
+            ignore: ["/dashboard", "/logout"],
         },
     },
 });
