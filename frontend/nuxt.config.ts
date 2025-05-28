@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
     compatibilityDate: "2024-11-01",
     devtools: { enabled: true },
-    ssr: process.env.NODE_ENV === "production", // Enable SSR only in production
+    // ssr: process.env.NODE_ENV === "production", // Enable SSR only in production
     modules: [
         "@nuxt/ui",
         "@pinia/nuxt",
@@ -60,10 +60,14 @@ export default defineNuxtConfig({
             ],
         },
     },
-    nitro: {
-        prerender: {
-            routes: ["/", "/how-it-works"],
-            ignore: ["/dashboard", "/logout"],
-        },
+    routeRules: {
+        // Static pages
+        "/": { prerender: true },
+        "/how-it-works": { prerender: true },
+        // Dynamic username route - will be server rendered
+        "/@*": { ssr: true },
+        // Admin routes - client side only
+        "/dashboard": { ssr: false },
+        "/logout": { ssr: false },
     },
 });
