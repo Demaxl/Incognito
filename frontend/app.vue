@@ -1,5 +1,6 @@
 <template>
     <UApp>
+        <Analytics />
         <!-- Adds a loading indicator between page transitions -->
         <NuxtLoadingIndicator />
         <NuxtLayout>
@@ -10,6 +11,8 @@
 </template>
 
 <script setup>
+import { Analytics } from "@vercel/analytics/nuxt";
+
 const siteDomain = useRuntimeConfig().public.siteDomain;
 
 // Default SEO metadata
