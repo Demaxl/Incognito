@@ -718,7 +718,19 @@ async function handleSubmit() {
             toast.add({
                 title: "Message sent!",
                 description: `Your anonymous message has been delivered to ${username}.`,
-                color: "success",
+                actions: [
+                    {
+                        label: "Get your own anonymous messages",
+                        color: "primary",
+                        icon: "material-symbols:mail-lock-outline",
+                        variant: "outline",
+                        size: "lg",
+                        class: "cursor-pointer",
+                        onClick: () => {
+                            navigateTo("/signup");
+                        },
+                    },
+                ],
             });
         }
     } catch (error) {
