@@ -1,4 +1,5 @@
 import { useToast } from "#imports";
+import { saveAs } from "file-saver";
 
 export const useShare = () => {
     const toast = useToast();
@@ -18,13 +19,22 @@ export const useShare = () => {
     };
 
     // Helper function to download a file
-    const downloadFile = (url, fileName) => {
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const downloadFile = async (url, fileName) => {
+        try {
+            // const response = await fetch(url);
+            // if (!response.ok) {
+            //     throw new Error(`HTTP error! status: ${response.status}`);
+            // }
+            // const blob = await response.blob();
+            saveAs(url, fileName);
+        } catch (error) {
+            console.error("Error downloading file:", error);
+            showToast(
+                "Download failed",
+                "Could not download the file. Please try again.",
+                "error"
+            );
+        }
     };
 
     // Helper function to show toast notifications

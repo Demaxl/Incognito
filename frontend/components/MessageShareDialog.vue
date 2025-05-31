@@ -233,8 +233,8 @@ const downloadMessage = (message) => {
     }
 
     useToast().add({
-        title: "Message downloaded",
-        description: "Your message has been saved to your device.",
+        title: "Message saved",
+        description: "Your message is being saved to your device.",
     });
 };
 </script>
