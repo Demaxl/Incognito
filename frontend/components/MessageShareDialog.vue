@@ -206,8 +206,8 @@ const shareToSocialMedia = (platform, messageId) => {
     }`;
 
     const shareData = {
-        title: "Incognito Message",
-        text: shareText,
+        // title: "Incognito Message",
+        // text: shareText,
         imageUrl,
     };
 
