@@ -20,78 +20,101 @@
                     }"
                 >
                     <template #preview>
-                        <!-- Preview Tab Content -->
                         <div class="space-y-4 mt-2 relative h-max">
+                            <!-- Offscreen card generators (MessageCardGenerator positions itself off-screen) -->
                             <div
-                                v-if="Object.keys(generatedImages).length === 0"
-                                class="flex flex-col items-center gap-6"
+                                v-if="pendingGeneratorIds.length > 0"
+                                aria-hidden="true"
                             >
-                                <div
-                                    v-for="message in messages"
+                                <MessageCardGenerator
+                                    v-for="message in pendingMessages"
                                     :key="message.id"
+                                    :message="message"
+                                    @generated="
+                                        (payload) =>
+                                            handleCardGenerated(
+                                                message.id,
+                                                payload
+                                            )
+                                    "
+                                />
+                            </div>
+
+                            <div
+                                v-if="isGenerating"
+                                class="w-full flex flex-col items-center justify-center gap-3 py-10"
+                            >
+                                <UIcon
+                                    name="i-heroicons-arrow-path"
+                                    class="animate-spin h-8 w-8 text-primary"
+                                />
+                                <p class="text-sm text-gray-500 text-center">
+                                    {{ generationStatus }}
+                                </p>
+                                <div
+                                    v-if="isComposing"
+                                    class="w-48 h-1.5 rounded-full bg-gray-200 overflow-hidden"
                                 >
-                                    <MessageCardGenerator
-                                        :message="message"
-                                        @generated="
-                                            (dataUrl) =>
-                                                handleImageGenerated(
-                                                    message.id,
-                                                    dataUrl
-                                                )
-                                        "
-                                    />
                                     <div
-                                        v-if="isGenerating"
-                                        class="w-full flex items-center justify-center"
-                                    >
-                                        <UIcon
-                                            name="i-heroicons-arrow-path"
-                                            class="animate-spin h-8 w-8 text-primary"
-                                        />
-                                    </div>
+                                        class="h-full bg-primary transition-all duration-200"
+                                        :style="{ width: `${progress}%` }"
+                                    />
                                 </div>
                             </div>
 
-                            <!-- <div v-else> -->
                             <TransitionGroup
+                                v-else
                                 enter-active-class="animate__animated animate__zoomIn animate__faster"
                                 leave-active-class="animate__animated animate__zoomOut animate__faster"
                             >
                                 <div
-                                    v-for="generatedImage in Object.values(
-                                        generatedImages
-                                    )"
-                                    :key="generatedImage"
+                                    v-for="(asset, messageId) in generatedAssets"
+                                    :key="messageId"
                                     class="flex justify-center"
                                 >
-                                    <img
+                                    <video
+                                        v-if="asset.type === 'video'"
+                                        :src="sanitizeUrl(asset.url)"
+                                        controls
+                                        playsinline
+                                        class="rounded-md"
                                         style="
                                             width: auto;
                                             height: 400px;
-                                            cursor: zoom-in;
+                                            max-width: 100%;
                                         "
-                                        :src="sanitizeUrl(generatedImage)"
-                                        :alt="sanitizeText('Generated Message')"
-                                        @click="showImagePreview = true"
                                     />
-                                    <Teleport to="body">
-                                        <ImagePreview
-                                            v-model="showImagePreview"
-                                            :src="sanitizeUrl(generatedImage)"
+                                    <template v-else>
+                                        <img
+                                            style="
+                                                width: auto;
+                                                height: 400px;
+                                                cursor: zoom-in;
+                                            "
+                                            :src="sanitizeUrl(asset.url)"
                                             :alt="
                                                 sanitizeText(
                                                     'Generated Message'
                                                 )
                                             "
+                                            @click="
+                                                openImagePreview(asset.url)
+                                            "
                                         />
-                                    </Teleport>
+                                    </template>
                                 </div>
                             </TransitionGroup>
-                            <!-- </div> -->
+
+                            <Teleport to="body">
+                                <ImagePreview
+                                    v-model="showImagePreview"
+                                    :src="sanitizeUrl(previewImageUrl)"
+                                    :alt="sanitizeText('Generated Message')"
+                                />
+                            </Teleport>
                         </div>
                     </template>
                     <template #share>
-                        <!-- Share Tab Content -->
                         <div class="space-y-6 mt-4">
                             <div
                                 v-for="message in messages"
@@ -99,7 +122,7 @@
                                 class="border border-gray-300 rounded-lg p-4"
                             >
                                 <h3 class="font-medium mb-3 truncate">
-                                    {{ message.text }}
+                                    {{ message.text || "Media message" }}
                                 </h3>
 
                                 <div class="space-y-4">
@@ -108,15 +131,10 @@
                                         icon="material-symbols:share-outline"
                                         class="w-full gap-2 flex justify-center py-3 cursor-pointer"
                                         @click="
-                                            () =>
-                                                shareToSocialMedia(
-                                                    'more',
-                                                    message.id
-                                                )
+                                            () => shareMessage(message.id)
                                         "
                                         :disabled="isGenerating"
-                                    >
-                                    </UButton>
+                                    />
                                     <UButton
                                         variant="soft"
                                         color="neutral"
@@ -125,8 +143,18 @@
                                         class="w-full gap-2 flex justify-center py-3 cursor-pointer"
                                         @click="() => downloadMessage(message)"
                                         :disabled="isGenerating"
+                                    />
+                                    <p
+                                        v-if="
+                                            ['video', 'audio'].includes(
+                                                message.message_type
+                                            )
+                                        "
+                                        class="text-xs text-gray-500 text-center"
                                     >
-                                    </UButton>
+                                        Downloads a branded MP4 ready for
+                                        Stories, Reels, or TikTok.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -159,14 +187,28 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
-const username = useAuthStore().userData.username;
 
-// Stores generated image data URLs by message ID
-const generatedImages = ref({});
+/** @type {import('vue').Ref<Record<string, { type: 'image' | 'video', url: string, blob?: Blob }>>} */
+const generatedAssets = ref({});
 const isGenerating = ref(true);
 const showImagePreview = ref(false);
+const previewImageUrl = ref("");
+const cardReadyIds = ref(new Set());
+const generationStatus = ref("Preparing share card…");
 
-// Sanitize message content
+const { shareViaWebShare, downloadFile } = useShare();
+const {
+    progress,
+    isComposing,
+    statusMessage,
+    composeShareVideo,
+    cancelCompose,
+    isAbortError,
+} = useFFmpegShareCard();
+
+/** Set when the dialog unmounts so in-flight encodes don't update state. */
+const isCancelled = ref(false);
+
 const sanitizedMessages = computed(() => {
     return props.messages.map((message) => ({
         ...message,
@@ -175,7 +217,24 @@ const sanitizedMessages = computed(() => {
     }));
 });
 
-// Tabs configuration for UTabs
+const pendingGeneratorIds = computed(() =>
+    props.messages
+        .filter((m) => !cardReadyIds.value.has(m.id))
+        .map((m) => m.id)
+);
+
+const pendingMessages = computed(() =>
+    sanitizedMessages.value.filter((m) =>
+        pendingGeneratorIds.value.includes(m.id)
+    )
+);
+
+watch(statusMessage, (value) => {
+    if (isComposing.value && value) {
+        generationStatus.value = value;
+    }
+});
+
 const tabs = [
     {
         label: "Preview",
@@ -189,47 +248,107 @@ const tabs = [
     },
 ];
 
-const { shareViaWebShare, downloadFile } = useShare();
+const openImagePreview = (url) => {
+    previewImageUrl.value = url;
+    showImagePreview.value = true;
+};
 
-const handleImageGenerated = (messageId, dataUrl) => {
-    generatedImages.value = { ...generatedImages.value, [messageId]: dataUrl };
-    if (Object.keys(generatedImages.value).length >= props.messages.length) {
+const markCardReady = (messageId) => {
+    const next = new Set(cardReadyIds.value);
+    next.add(messageId);
+    cardReadyIds.value = next;
+};
+
+const finishIfComplete = () => {
+    if (Object.keys(generatedAssets.value).length >= props.messages.length) {
         isGenerating.value = false;
+        generationStatus.value = "";
     }
 };
 
-const shareToSocialMedia = (platform, messageId) => {
+const handleCardGenerated = async (messageId, payload) => {
+    const { dataUrl, mediaRect } = payload ?? {};
+    if (!dataUrl || isCancelled.value) return;
+
+    markCardReady(messageId);
+
     const message = sanitizedMessages.value.find((m) => m.id === messageId);
-    const imageUrl = generatedImages.value[messageId];
-    const shareText = `Check out this anonymous message on Incognito: ${
-        message.text || "Media Message"
-    }`;
+    if (!message) return;
 
-    const shareData = {
-        // title: "Incognito Message",
-        // text: shareText,
-        imageUrl,
-    };
+    try {
+        if (["video", "audio"].includes(message.message_type)) {
+            generationStatus.value =
+                message.message_type === "audio"
+                    ? "Creating audio card…"
+                    : "Creating video card…";
 
-    // For media messages (video/audio), share both the card and the original media
-    if (message.message_type === "video" || message.message_type === "audio") {
-        shareData.mediaUrl = message.content;
-        shareData.mediaType = message.message_type;
+            const blob = await composeShareVideo({
+                messageType: message.message_type,
+                cardDataUrl: dataUrl,
+                mediaUrl: message.content,
+                mediaRect,
+            });
+
+            if (isCancelled.value) return;
+
+            const url = URL.createObjectURL(blob);
+            generatedAssets.value = {
+                ...generatedAssets.value,
+                [messageId]: { type: "video", url, blob },
+            };
+        } else {
+            if (isCancelled.value) return;
+            generatedAssets.value = {
+                ...generatedAssets.value,
+                [messageId]: { type: "image", url: dataUrl },
+            };
+        }
+    } catch (error) {
+        if (isCancelled.value || isAbortError(error)) return;
+
+        console.error("Failed to generate share asset:", error);
+        // Fall back to the static card so the user can still download something
+        generatedAssets.value = {
+            ...generatedAssets.value,
+            [messageId]: { type: "image", url: dataUrl },
+        };
+        useToast().add({
+            title: "Video card failed",
+            description:
+                "Could not encode the branded video. Showing the static card instead.",
+            color: "warning",
+        });
+    } finally {
+        if (!isCancelled.value) {
+            finishIfComplete();
+        }
     }
-    shareViaWebShare(shareData);
+};
+
+const shareMessage = (messageId) => {
+    const message = sanitizedMessages.value.find((m) => m.id === messageId);
+    const asset = generatedAssets.value[messageId];
+    if (!message || !asset) return;
+
+    if (asset.type === "video") {
+        shareViaWebShare({
+            videoUrl: asset.url,
+            videoBlob: asset.blob,
+        });
+        return;
+    }
+
+    shareViaWebShare({ imageUrl: asset.url });
 };
 
 const downloadMessage = (message) => {
-    const dataUrl = generatedImages.value[message.id];
-    if (!dataUrl) return;
+    const asset = generatedAssets.value[message.id];
+    if (!asset) return;
 
-    downloadFile(dataUrl, `incognito-message-${message.id}.png`);
-
-    if (["video", "audio"].includes(message.message_type)) {
-        downloadFile(
-            message.content,
-            `incognito-${message.message_type}-${message.id}.mp4`
-        );
+    if (asset.type === "video") {
+        downloadFile(asset.url, `incognito-message-${message.id}.mp4`);
+    } else {
+        downloadFile(asset.url, `incognito-message-${message.id}.png`);
     }
 
     useToast().add({
@@ -237,4 +356,17 @@ const downloadMessage = (message) => {
         description: "Your message is being saved to your device.",
     });
 };
+
+onBeforeUnmount(() => {
+    isCancelled.value = true;
+    // Kill the WASM worker + reset the compose queue so the next modal isn't
+    // blocked behind a half-finished encode from this one.
+    cancelCompose();
+
+    for (const asset of Object.values(generatedAssets.value)) {
+        if (asset.type === "video" && asset.url?.startsWith("blob:")) {
+            URL.revokeObjectURL(asset.url);
+        }
+    }
+});
 </script>

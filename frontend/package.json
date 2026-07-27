@@ -10,6 +10,9 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@nuxt/ui": "^3.0.2",
     "@nuxtjs/seo": "^3.0.3",
     "@pinia/nuxt": "^0.11.0",

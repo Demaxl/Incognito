@@ -15,6 +15,10 @@ export default defineNuxtConfig({
     css: ["~/assets/css/main.css", "animate.css/animate.min.css"],
     vite: {
         plugins: [tailwindcss()],
+        optimizeDeps: {
+            // ffmpeg.wasm should not be pre-bundled by Vite
+            exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
+        },
     },
 
     ui: {

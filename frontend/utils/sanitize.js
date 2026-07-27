@@ -19,6 +19,9 @@ export function sanitizeUrl(url) {
     url = url.replace(/^javascript:/i, "");
 
     // Remove any data: protocol except for images
+    if (url.startsWith("blob:")) {
+        return url;
+    }
     if (!url.startsWith("data:image/")) {
         url = url.replace(/^data:/i, "");
     }

@@ -50,12 +50,10 @@
                 <div v-else class="text-center font-light" style="font-size: 48px; line-height: 1.4">
                     Video Message
                 </div>
-                <div class="relative w-[800px] h-[400px] bg-transparent flex items-center justify-center">
-                    <!-- Video thumbnail with play button overlay -->
-                    <div class="w-full h-full flex items-center justify-center rounded-lg">
-                        <IconLucideVideo class="h-32 w-32 fill-white" />
-                    </div>
-                </div>
+                <!-- Transparent placeholder: the actual video is composited into
+                     this region later by ffmpeg.wasm, so leave it empty so the
+                     gradient shows through any letterbox gaps. -->
+                <div ref="mediaSlot" class="relative w-[800px] h-[800px] bg-transparent"></div>
             </div>
 
             <!-- Audio Message -->
@@ -106,7 +104,29 @@ const username = useAuthStore().userData.username;
 const emit = defineEmits(["generated"]);
 const cardContainer = useTemplateRef("cardContainer");
 const messageImage = useTemplateRef("messageImage");
+const mediaSlot = useTemplateRef("mediaSlot");
 const imageLoaded = ref(false);
+
+const OUTPUT_WIDTH = 1080;
+const OUTPUT_HEIGHT = 1920;
+
+// Measure the video placeholder in output-pixel coordinates so ffmpeg knows
+// where to overlay the video on the rendered card.
+const getMediaRect = (canvas) => {
+    if (!mediaSlot.value || !cardContainer.value) return null;
+
+    const containerRect = cardContainer.value.getBoundingClientRect();
+    const slotRect = mediaSlot.value.getBoundingClientRect();
+    const scaleX = canvas.width / containerRect.width;
+    const scaleY = canvas.height / containerRect.height;
+
+    return {
+        x: (slotRect.left - containerRect.left) * scaleX,
+        y: (slotRect.top - containerRect.top) * scaleY,
+        width: slotRect.width * scaleX,
+        height: slotRect.height * scaleY,
+    };
+};
 
 // Function to handle image load
 const onImageLoad = () => {
@@ -125,12 +145,12 @@ const generateImage = () => {
 
     html2canvas(cardContainer.value, {
         scale: 1,
-        width: 1070,
-        height: 1905,
+        width: OUTPUT_WIDTH,
+        height: OUTPUT_HEIGHT,
         useCORS: true,
         backgroundColor: null,
-        windowWidth: 1070,
-        windowHeight: 1905,
+        windowWidth: OUTPUT_WIDTH,
+        windowHeight: OUTPUT_HEIGHT,
         imageTimeout: 0,
         onclone: (clonedDoc) => {
             // Ensure the cloned document has the image loaded
@@ -154,15 +174,20 @@ const generateImage = () => {
         },
     }).then((canvas) => {
         const dataUrl = canvas.toDataURL("image/png");
-        emit("generated", dataUrl);
+        const mediaRect =
+            props.message.message_type === "video"
+                ? getMediaRect(canvas)
+                : null;
+        emit("generated", { dataUrl, mediaRect });
     });
 };
 
-onMounted(() => {
-    // For text messages, generate immediately
+onMounted(async () => {
+    // Wait a tick so layout (and the video mediaSlot) is measurable
+    await nextTick();
     if (["text", "video", "audio"].includes(props.message.message_type)) {
-        generateImage();
+        // Small delay helps logo / fonts settle before the screenshot
+        requestAnimationFrame(() => generateImage());
     }
-    // For image messages, wait for onImageLoad
 });
 </script>

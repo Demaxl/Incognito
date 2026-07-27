@@ -42,21 +42,18 @@ export const useShare = () => {
         toast.add({ title, description, color });
     };
 
-    // Helper function to prepare media file for sharing
-    const prepareMediaFile = async (mediaUrl, mediaType) => {
-        const mediaBlob = await fetchAsBlob(mediaUrl);
-        const extension = mediaType === "video" ? "mp4" : "mp3";
-        const mimeType = mediaType === "video" ? "video/mp4" : "audio/mpeg";
-        const fileName = `incognito-${mediaType}-${Date.now()}.${extension}`;
-
-        return createFileFromBlob(mediaBlob, fileName, mimeType);
-    };
-
     // Helper function to prepare card image for sharing
     const prepareCardImage = async (imageUrl) => {
         const imageBlob = await fetchAsBlob(imageUrl);
         const fileName = `incognito-card-${Date.now()}.png`;
         return createFileFromBlob(imageBlob, fileName, "image/png");
+    };
+
+    // Helper for composed branded video cards (MP4)
+    const prepareVideoFile = async (videoUrl, videoBlob) => {
+        const blob = videoBlob || (await fetchAsBlob(videoUrl));
+        const fileName = `incognito-card-${Date.now()}.mp4`;
+        return createFileFromBlob(blob, fileName, "video/mp4");
     };
 
     // Main sharing function
@@ -65,8 +62,8 @@ export const useShare = () => {
         text,
         url,
         imageUrl,
-        mediaUrl,
-        mediaType,
+        videoUrl,
+        videoBlob,
     }) {
         if (!process.client || !navigator.share) {
             showToast(
@@ -79,28 +76,32 @@ export const useShare = () => {
 
         try {
             const shareData = { title, text, url };
-
             const filesToShare = [];
-            if (imageUrl) {
+
+            if (videoUrl || videoBlob) {
+                filesToShare.push(prepareVideoFile(videoUrl, videoBlob));
+            } else if (imageUrl) {
                 filesToShare.push(prepareCardImage(imageUrl));
             }
-            // Handle media messages (video/audio)
-            if (mediaUrl && mediaType) {
-                filesToShare.push(prepareMediaFile(mediaUrl, mediaType));
+
+            if (filesToShare.length) {
+                shareData.files = await Promise.all(filesToShare);
             }
 
-            shareData.files = await Promise.all(filesToShare);
-            console.log(shareData);
             await navigator.share(shareData);
             return true;
         } catch (error) {
             console.error("Error sharing media:", error);
 
-            // Fallback to download if sharing fails
-            if (mediaUrl && mediaType) {
+            // Fallback to download if sharing fails (ignore abort)
+            if (error?.name === "AbortError") {
+                return false;
+            }
+
+            if (videoUrl || videoBlob) {
                 downloadFile(
-                    mediaUrl,
-                    `incognito-${mediaType}-${Date.now()}.mp4`
+                    videoUrl || URL.createObjectURL(videoBlob),
+                    `incognito-card-${Date.now()}.mp4`
                 );
             } else if (imageUrl) {
                 downloadFile(imageUrl, `incognito-card-${Date.now()}.png`);
