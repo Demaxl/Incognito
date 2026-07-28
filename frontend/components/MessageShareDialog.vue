@@ -13,33 +13,25 @@
                         </p>
                     </div>
                 </template>
+                <!-- Always mounted (outside tabs): Preview panel unmounts when
+                     Share is active, which would block offscreen card capture. -->
+                <div v-if="generatorMessage" aria-hidden="true">
+                    <MessageCardGenerator
+                        :key="generatorMessage.id"
+                        :message="generatorMessage"
+                        @generated="handleCardGenerated"
+                    />
+                </div>
+
                 <UTabs
+                    v-model="activeTab"
                     :items="tabs"
                     :ui="{
                         trigger: 'cursor-pointer',
                     }"
                 >
                     <template #preview>
-                        <div class="space-y-4 mt-2 relative h-max">
-                            <!-- Offscreen card generators (MessageCardGenerator positions itself off-screen) -->
-                            <div
-                                v-if="pendingGeneratorIds.length > 0"
-                                aria-hidden="true"
-                            >
-                                <MessageCardGenerator
-                                    v-for="message in pendingMessages"
-                                    :key="message.id"
-                                    :message="message"
-                                    @generated="
-                                        (payload) =>
-                                            handleCardGenerated(
-                                                message.id,
-                                                payload
-                                            )
-                                    "
-                                />
-                            </div>
-
+                        <div class="space-y-4 mt-2 relative h-max min-h-[280px]">
                             <div
                                 v-if="isGenerating"
                                 class="w-full flex flex-col items-center justify-center gap-3 py-10"
@@ -62,14 +54,28 @@
                                 </div>
                             </div>
 
+                            <div
+                                v-else-if="previewAssets.length === 0"
+                                class="flex flex-col items-center justify-center gap-3 py-12 text-center"
+                            >
+                                <UIcon
+                                    name="i-heroicons-photo"
+                                    class="h-10 w-10 text-gray-300"
+                                />
+                                <p class="text-sm text-gray-500 max-w-xs">
+                                    Your share card will appear here after you
+                                    Share or Download a message.
+                                </p>
+                            </div>
+
                             <TransitionGroup
                                 v-else
                                 enter-active-class="animate__animated animate__zoomIn animate__faster"
                                 leave-active-class="animate__animated animate__zoomOut animate__faster"
                             >
                                 <div
-                                    v-for="(asset, messageId) in generatedAssets"
-                                    :key="messageId"
+                                    v-for="asset in previewAssets"
+                                    :key="asset.messageId"
                                     class="flex justify-center"
                                 >
                                     <video
@@ -130,8 +136,10 @@
                                         label="Share Message"
                                         icon="material-symbols:share-outline"
                                         class="w-full gap-2 flex justify-center py-3 cursor-pointer"
-                                        @click="
-                                            () => shareMessage(message.id)
+                                        @click="() => shareMessage(message.id)"
+                                        :loading="
+                                            isGenerating &&
+                                            generatingMessageId === message.id
                                         "
                                         :disabled="isGenerating"
                                     />
@@ -142,18 +150,35 @@
                                         icon="i-heroicons-arrow-down-tray"
                                         class="w-full gap-2 flex justify-center py-3 cursor-pointer"
                                         @click="() => downloadMessage(message)"
+                                        :loading="
+                                            isGenerating &&
+                                            generatingMessageId === message.id
+                                        "
                                         :disabled="isGenerating"
                                     />
                                     <p
                                         v-if="
+                                            isGenerating &&
+                                            generatingMessageId === message.id
+                                        "
+                                        class="text-xs text-primary text-center"
+                                    >
+                                        {{ generationStatus || "Preparing…" }}
+                                        <template v-if="isComposing">
+                                            ({{ progress }}%)
+                                        </template>
+                                    </p>
+                                    <p
+                                        v-else-if="
                                             ['video', 'audio'].includes(
                                                 message.message_type
                                             )
                                         "
                                         class="text-xs text-gray-500 text-center"
                                     >
-                                        Downloads a branded MP4 ready for
-                                        Stories, Reels, or TikTok.
+                                        Creates a branded MP4 ready for Stories,
+                                        Reels, or TikTok when you share or
+                                        download.
                                     </p>
                                 </div>
                             </div>
@@ -188,13 +213,18 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 
-/** @type {import('vue').Ref<Record<string, { type: 'image' | 'video', url: string, blob?: Blob }>>} */
+/** @type {import('vue').Ref<Record<string|number, { type: 'image' | 'video', url: string, blob?: Blob }>>} */
 const generatedAssets = ref({});
-const isGenerating = ref(true);
+const isGenerating = ref(false);
+const generatingMessageId = ref(null);
 const showImagePreview = ref(false);
 const previewImageUrl = ref("");
-const cardReadyIds = ref(new Set());
-const generationStatus = ref("Preparing share card…");
+const generationStatus = ref("");
+const generatorMessage = ref(null);
+const activeTab = ref("share");
+
+/** @type {{ resolve: Function, reject: Function, messageId: string|number } | null} */
+let pendingCardRequest = null;
 
 const { shareViaWebShare, downloadFile } = useShare();
 const {
@@ -217,16 +247,11 @@ const sanitizedMessages = computed(() => {
     }));
 });
 
-const pendingGeneratorIds = computed(() =>
-    props.messages
-        .filter((m) => !cardReadyIds.value.has(m.id))
-        .map((m) => m.id)
-);
-
-const pendingMessages = computed(() =>
-    sanitizedMessages.value.filter((m) =>
-        pendingGeneratorIds.value.includes(m.id)
-    )
+const previewAssets = computed(() =>
+    Object.entries(generatedAssets.value).map(([messageId, asset]) => ({
+        messageId,
+        ...asset,
+    }))
 );
 
 watch(statusMessage, (value) => {
@@ -237,14 +262,14 @@ watch(statusMessage, (value) => {
 
 const tabs = [
     {
-        label: "Preview",
-        slot: "preview",
-        value: "preview",
-    },
-    {
         label: "Share",
         slot: "share",
         value: "share",
+    },
+    {
+        label: "Preview",
+        slot: "preview",
+        value: "preview",
     },
 ];
 
@@ -253,112 +278,223 @@ const openImagePreview = (url) => {
     showImagePreview.value = true;
 };
 
-const markCardReady = (messageId) => {
-    const next = new Set(cardReadyIds.value);
-    next.add(messageId);
-    cardReadyIds.value = next;
-};
-
-const finishIfComplete = () => {
-    if (Object.keys(generatedAssets.value).length >= props.messages.length) {
-        isGenerating.value = false;
-        generationStatus.value = "";
+/**
+ * Capture the offscreen card PNG (and mediaRect for video) via MessageCardGenerator.
+ */
+const captureCardChrome = (message) => {
+    if (pendingCardRequest) {
+        pendingCardRequest.reject(new Error("Superseded by another generation"));
+        pendingCardRequest = null;
     }
+
+    return new Promise((resolve, reject) => {
+        pendingCardRequest = { resolve, reject, messageId: message.id };
+        generatorMessage.value = message;
+    });
 };
 
-const handleCardGenerated = async (messageId, payload) => {
-    const { dataUrl, mediaRect } = payload ?? {};
-    if (!dataUrl || isCancelled.value) return;
+const handleCardGenerated = (payload) => {
+    const request = pendingCardRequest;
+    pendingCardRequest = null;
+    generatorMessage.value = null;
 
-    markCardReady(messageId);
+    if (!request) return;
+
+    const { dataUrl, mediaRect } = payload ?? {};
+    if (!dataUrl) {
+        request.reject(new Error("Card generator returned no image"));
+        return;
+    }
+
+    request.resolve({ dataUrl, mediaRect });
+};
+
+/**
+ * Build (or reuse) the shareable asset for a message. Text/image → PNG;
+ * video/audio → branded MP4 via ffmpeg.wasm.
+ */
+const ensureAsset = async (messageId) => {
+    const cached = generatedAssets.value[messageId];
+    if (cached) return cached;
+
+    if (isCancelled.value) {
+        throw new DOMException("Composition aborted", "AbortError");
+    }
 
     const message = sanitizedMessages.value.find((m) => m.id === messageId);
-    if (!message) return;
+    if (!message) {
+        throw new Error("Message not found");
+    }
+
+    isGenerating.value = true;
+    generatingMessageId.value = messageId;
+    generationStatus.value = "Preparing share card…";
+
+    let cardDataUrl = null;
 
     try {
+        const { dataUrl, mediaRect } = await captureCardChrome(message);
+        cardDataUrl = dataUrl;
+
+        if (isCancelled.value) {
+            throw new DOMException("Composition aborted", "AbortError");
+        }
+
         if (["video", "audio"].includes(message.message_type)) {
             generationStatus.value =
                 message.message_type === "audio"
                     ? "Creating audio card…"
                     : "Creating video card…";
 
-            const blob = await composeShareVideo({
-                messageType: message.message_type,
-                cardDataUrl: dataUrl,
-                mediaUrl: message.content,
-                mediaRect,
-            });
+            try {
+                const blob = await composeShareVideo({
+                    messageType: message.message_type,
+                    cardDataUrl: dataUrl,
+                    mediaUrl: message.content,
+                    mediaRect,
+                });
 
-            if (isCancelled.value) return;
+                if (isCancelled.value) {
+                    throw new DOMException("Composition aborted", "AbortError");
+                }
 
-            const url = URL.createObjectURL(blob);
-            generatedAssets.value = {
-                ...generatedAssets.value,
-                [messageId]: { type: "video", url, blob },
-            };
-        } else {
-            if (isCancelled.value) return;
-            generatedAssets.value = {
-                ...generatedAssets.value,
-                [messageId]: { type: "image", url: dataUrl },
-            };
+                const asset = {
+                    type: "video",
+                    url: URL.createObjectURL(blob),
+                    blob,
+                };
+                generatedAssets.value = {
+                    ...generatedAssets.value,
+                    [messageId]: asset,
+                };
+                return asset;
+            } catch (composeError) {
+                if (isCancelled.value || isAbortError(composeError)) {
+                    throw composeError;
+                }
+
+                console.error("Video card encode failed:", composeError);
+                useToast().add({
+                    title: "Video card failed",
+                    description:
+                        "Could not encode the branded video. Using the static card instead.",
+                    color: "warning",
+                });
+
+                const asset = { type: "image", url: dataUrl };
+                generatedAssets.value = {
+                    ...generatedAssets.value,
+                    [messageId]: asset,
+                };
+                return asset;
+            }
         }
+
+        const asset = { type: "image", url: dataUrl };
+        generatedAssets.value = {
+            ...generatedAssets.value,
+            [messageId]: asset,
+        };
+        return asset;
+    } catch (error) {
+        if (isCancelled.value || isAbortError(error)) throw error;
+
+        // Last resort: if chrome capture succeeded somehow stored, unused
+        if (cardDataUrl) {
+            const asset = { type: "image", url: cardDataUrl };
+            generatedAssets.value = {
+                ...generatedAssets.value,
+                [messageId]: asset,
+            };
+            return asset;
+        }
+
+        throw error;
+    } finally {
+        generatorMessage.value = null;
+        pendingCardRequest = null;
+        if (!isCancelled.value) {
+            isGenerating.value = false;
+            generatingMessageId.value = null;
+            generationStatus.value = "";
+        }
+    }
+};
+
+const showPreviewTab = () => {
+    activeTab.value = "preview";
+};
+
+const shareMessage = async (messageId) => {
+    try {
+        const asset = await ensureAsset(messageId);
+        if (isCancelled.value || !asset) return;
+
+        showPreviewTab();
+
+        if (asset.type === "video") {
+            await shareViaWebShare({
+                videoUrl: asset.url,
+                videoBlob: asset.blob,
+            });
+            return;
+        }
+
+        await shareViaWebShare({ imageUrl: asset.url });
     } catch (error) {
         if (isCancelled.value || isAbortError(error)) return;
 
-        console.error("Failed to generate share asset:", error);
-        // Fall back to the static card so the user can still download something
-        generatedAssets.value = {
-            ...generatedAssets.value,
-            [messageId]: { type: "image", url: dataUrl },
-        };
+        console.error("Failed to share message:", error);
         useToast().add({
-            title: "Video card failed",
+            title: "Share failed",
             description:
-                "Could not encode the branded video. Showing the static card instead.",
-            color: "warning",
+                "Could not prepare this message for sharing. Please try again.",
+            color: "error",
         });
-    } finally {
-        if (!isCancelled.value) {
-            finishIfComplete();
+    }
+};
+
+const downloadMessage = async (message) => {
+    try {
+        const asset = await ensureAsset(message.id);
+        if (isCancelled.value || !asset) return;
+
+        showPreviewTab();
+
+        if (asset.type === "video") {
+            downloadFile(asset.url, `incognito-message-${message.id}.mp4`);
+        } else {
+            downloadFile(asset.url, `incognito-message-${message.id}.png`);
         }
-    }
-};
 
-const shareMessage = (messageId) => {
-    const message = sanitizedMessages.value.find((m) => m.id === messageId);
-    const asset = generatedAssets.value[messageId];
-    if (!message || !asset) return;
-
-    if (asset.type === "video") {
-        shareViaWebShare({
-            videoUrl: asset.url,
-            videoBlob: asset.blob,
+        useToast().add({
+            title: "Message saved",
+            description: "Your message is being saved to your device.",
         });
-        return;
+    } catch (error) {
+        if (isCancelled.value || isAbortError(error)) return;
+
+        console.error("Failed to download message:", error);
+        useToast().add({
+            title: "Download failed",
+            description:
+                "Could not prepare this message for download. Please try again.",
+            color: "error",
+        });
     }
-
-    shareViaWebShare({ imageUrl: asset.url });
-};
-
-const downloadMessage = (message) => {
-    const asset = generatedAssets.value[message.id];
-    if (!asset) return;
-
-    if (asset.type === "video") {
-        downloadFile(asset.url, `incognito-message-${message.id}.mp4`);
-    } else {
-        downloadFile(asset.url, `incognito-message-${message.id}.png`);
-    }
-
-    useToast().add({
-        title: "Message saved",
-        description: "Your message is being saved to your device.",
-    });
 };
 
 onBeforeUnmount(() => {
     isCancelled.value = true;
+
+    if (pendingCardRequest) {
+        pendingCardRequest.reject(
+            new DOMException("Composition aborted", "AbortError")
+        );
+        pendingCardRequest = null;
+    }
+    generatorMessage.value = null;
+
     // Kill the WASM worker + reset the compose queue so the next modal isn't
     // blocked behind a half-finished encode from this one.
     cancelCompose();
