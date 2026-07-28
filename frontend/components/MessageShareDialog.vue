@@ -141,12 +141,14 @@
                                             isGenerating &&
                                             generatingMessageId === message.id
                                         "
-                                        :disabled="isGenerating"
+                                        :disabled="
+                                            isGenerating || isDownloadingOriginal
+                                        "
                                     />
                                     <UButton
                                         variant="soft"
                                         color="neutral"
-                                        label="Download Message"
+                                        label="Download Share Card"
                                         icon="i-heroicons-arrow-down-tray"
                                         class="w-full gap-2 flex justify-center py-3 cursor-pointer"
                                         @click="() => downloadMessage(message)"
@@ -154,7 +156,39 @@
                                             isGenerating &&
                                             generatingMessageId === message.id
                                         "
-                                        :disabled="isGenerating"
+                                        :disabled="
+                                            isGenerating || isDownloadingOriginal
+                                        "
+                                    />
+                                    <UButton
+                                        v-if="
+                                            ['video', 'audio'].includes(
+                                                message.message_type
+                                            )
+                                        "
+                                        variant="outline"
+                                        color="neutral"
+                                        :label="
+                                            message.message_type === 'audio'
+                                                ? 'Download Original Audio'
+                                                : 'Download Original Video'
+                                        "
+                                        :icon="
+                                            message.message_type === 'audio'
+                                                ? 'i-heroicons-musical-note'
+                                                : 'i-heroicons-film'
+                                        "
+                                        class="w-full gap-2 flex justify-center py-3 cursor-pointer"
+                                        @click="
+                                            () => downloadOriginalMedia(message)
+                                        "
+                                        :loading="
+                                            isDownloadingOriginal &&
+                                            downloadingOriginalId === message.id
+                                        "
+                                        :disabled="
+                                            isGenerating || isDownloadingOriginal
+                                        "
                                     />
                                     <p
                                         v-if="
@@ -176,9 +210,10 @@
                                         "
                                         class="text-xs text-gray-500 text-center"
                                     >
-                                        Creates a branded MP4 ready for Stories,
-                                        Reels, or TikTok when you share or
-                                        download.
+                                        Share Card creates a branded MP4 for
+                                        Stories, Reels, or TikTok. Original
+                                        downloads the raw
+                                        {{ message.message_type }} file.
                                     </p>
                                 </div>
                             </div>
@@ -217,6 +252,8 @@ const emit = defineEmits(["close"]);
 const generatedAssets = ref({});
 const isGenerating = ref(false);
 const generatingMessageId = ref(null);
+const isDownloadingOriginal = ref(false);
+const downloadingOriginalId = ref(null);
 const showImagePreview = ref(false);
 const previewImageUrl = ref("");
 const generationStatus = ref("");
@@ -469,7 +506,7 @@ const downloadMessage = async (message) => {
 
         useToast().add({
             title: "Message saved",
-            description: "Your message is being saved to your device.",
+            description: "Your share card is being saved to your device.",
         });
     } catch (error) {
         if (isCancelled.value || isAbortError(error)) return;
@@ -481,6 +518,66 @@ const downloadMessage = async (message) => {
                 "Could not prepare this message for download. Please try again.",
             color: "error",
         });
+    }
+};
+
+/**
+ * Infer a file extension from a media URL, with sensible fallbacks.
+ */
+const mediaExtension = (url, messageType) => {
+    try {
+        const pathname = new URL(url, window.location.origin).pathname;
+        const match = pathname.match(/\.([a-zA-Z0-9]+)(?:$|\?)/);
+        if (match?.[1]) return match[1].toLowerCase();
+    } catch {
+        // ignore malformed URLs
+    }
+    return messageType === "audio" ? "mp3" : "mp4";
+};
+
+/**
+ * Download the original video/audio file without composing a share card.
+ */
+const downloadOriginalMedia = async (message) => {
+    const media =
+        sanitizedMessages.value.find((m) => m.id === message.id) || message;
+
+    if (!["video", "audio"].includes(media.message_type) || !media.content) {
+        return;
+    }
+
+    isDownloadingOriginal.value = true;
+    downloadingOriginalId.value = media.id;
+
+    try {
+        const ext = mediaExtension(media.content, media.message_type);
+        const fileName = `incognito-${media.message_type}-${media.id}.${ext}`;
+
+        // Fetch as blob so cross-origin S3/CloudFront URLs still download
+        // with the intended filename (anchor download alone often fails CORS).
+        const response = await fetch(media.content);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const blob = await response.blob();
+        await downloadFile(blob, fileName);
+
+        useToast().add({
+            title:
+                media.message_type === "audio" ? "Audio saved" : "Video saved",
+            description: "The original file is being saved to your device.",
+        });
+    } catch (error) {
+        console.error("Failed to download original media:", error);
+        useToast().add({
+            title: "Download failed",
+            description:
+                "Could not download the original file. Please try again.",
+            color: "error",
+        });
+    } finally {
+        isDownloadingOriginal.value = false;
+        downloadingOriginalId.value = null;
     }
 };
 

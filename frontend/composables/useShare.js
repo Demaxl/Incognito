@@ -18,15 +18,10 @@ export const useShare = () => {
         return await response.blob();
     };
 
-    // Helper function to download a file
-    const downloadFile = async (url, fileName) => {
+    // Helper function to download a file (URL string or Blob)
+    const downloadFile = async (urlOrBlob, fileName) => {
         try {
-            // const response = await fetch(url);
-            // if (!response.ok) {
-            //     throw new Error(`HTTP error! status: ${response.status}`);
-            // }
-            // const blob = await response.blob();
-            saveAs(url, fileName);
+            saveAs(urlOrBlob, fileName);
         } catch (error) {
             console.error("Error downloading file:", error);
             showToast(
