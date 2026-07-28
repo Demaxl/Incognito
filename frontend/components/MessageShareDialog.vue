@@ -63,8 +63,11 @@
                                     class="h-10 w-10 text-gray-300"
                                 />
                                 <p class="text-sm text-gray-500 max-w-xs">
-                                    Your share card will appear here after you
-                                    Share or Download a message.
+                                    {{
+                                        opensOnPreview
+                                            ? "Preparing your share card…"
+                                            : "Your share card will appear here after you Share or Download a message."
+                                    }}
                                 </p>
                             </div>
 
@@ -258,7 +261,15 @@ const showImagePreview = ref(false);
 const previewImageUrl = ref("");
 const generationStatus = ref("");
 const generatorMessage = ref(null);
-const activeTab = ref("share");
+
+const isInstantCardType = (type) => ["text", "image"].includes(type);
+
+/** Text/image cards are cheap (html2canvas only) — open on Preview and auto-build. */
+const opensOnPreview = computed(() =>
+    (props.messages ?? []).every((m) => isInstantCardType(m.message_type))
+);
+
+const activeTab = ref(opensOnPreview.value ? "preview" : "share");
 
 /** @type {{ resolve: Function, reject: Function, messageId: string|number } | null} */
 let pendingCardRequest = null;
@@ -297,18 +308,19 @@ watch(statusMessage, (value) => {
     }
 });
 
-const tabs = [
-    {
+const tabs = computed(() => {
+    const share = {
         label: "Share",
         slot: "share",
         value: "share",
-    },
-    {
+    };
+    const preview = {
         label: "Preview",
         slot: "preview",
         value: "preview",
-    },
-];
+    };
+    return opensOnPreview.value ? [preview, share] : [share, preview];
+});
 
 const openImagePreview = (url) => {
     previewImageUrl.value = url;
@@ -580,6 +592,33 @@ const downloadOriginalMedia = async (message) => {
         downloadingOriginalId.value = null;
     }
 };
+
+onMounted(async () => {
+    // Auto-generate cheap PNG cards for text/image so Preview is ready immediately.
+    const instantMessages = sanitizedMessages.value.filter((m) =>
+        isInstantCardType(m.message_type)
+    );
+
+    for (const message of instantMessages) {
+        if (isCancelled.value) return;
+        try {
+            await ensureAsset(message.id);
+        } catch (error) {
+            if (isCancelled.value || isAbortError(error)) return;
+            console.error("Failed to auto-generate share card:", error);
+            useToast().add({
+                title: "Preview failed",
+                description:
+                    "Could not prepare the share card. Try Share or Download.",
+                color: "warning",
+            });
+        }
+    }
+
+    if (!isCancelled.value && instantMessages.length > 0) {
+        showPreviewTab();
+    }
+});
 
 onBeforeUnmount(() => {
     isCancelled.value = true;
