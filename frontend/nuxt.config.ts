@@ -44,9 +44,16 @@ export default defineNuxtConfig({
     },
     runtimeConfig: {
         public: {
+            // Overridden in production via NUXT_PUBLIC_BACKEND_URL / NUXT_PUBLIC_SITE_DOMAIN
             backendURL: "http://localhost:8000",
+            // Full site origin used for share links and SEO (e.g. https://incgt.link)
             siteDomain: "http://localhost:3000",
         },
+    },
+    // Production site URL for @nuxtjs/seo (set NUXT_SITE_URL on Vercel)
+    site: {
+        url: process.env.NUXT_SITE_URL || "http://localhost:3000",
+        name: "Incognito",
     },
     app: {
         head: {

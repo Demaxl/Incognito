@@ -43,8 +43,8 @@ useSeoMeta({
     ogDescription:
         "Create your anonymous inbox, share your link, and receive text, images, audio, or video messages from anyone — all without revealing their identity.",
     ogType: "website",
-    ogUrl: `https://www.${siteDomain}`,
-    ogImage: `https://${siteDomain}/images/og-image.png`,
+    ogUrl: siteDomain,
+    ogImage: `${siteDomain}/images/og-image.png`,
     ogImageWidth: "1200",
     ogImageHeight: "630",
     ogImageAlt: "Incognito - Anonymous Messaging Platform",
@@ -58,26 +58,26 @@ useSeoMeta({
     twitterTitle: "Get honest thoughts. Anonymously.",
     twitterDescription:
         "Create your anonymous inbox, share your link, and receive text, images, audio, or video messages from anyone — all without revealing their identity.",
-    twitterImage: `https://${siteDomain}/images/og-image.png`,
+    twitterImage: `${siteDomain}/images/og-image.png`,
     twitterImageAlt: "Incognito - Anonymous Messaging Platform",
 
     // WhatsApp
-    ogImageSecureUrl: `https://${siteDomain}/images/og-image.png`,
+    ogImageSecureUrl: `${siteDomain}/images/og-image.png`,
 
     // Additional Meta Tags
     themeColor: "#46a6f8",
     mobileWebAppCapable: "yes",
     appleMobileWebAppStatusBarStyle: "default",
     appleMobileWebAppTitle: "Incognito",
-    appleTouchIcon: `https://${siteDomain}/images/apple-touch-icon.png`,
+    appleTouchIcon: `${siteDomain}/images/apple-touch-icon.png`,
     msapplicationTileColor: "#46a6f8",
-    msapplicationTileImage: `https://${siteDomain}/images/mstile-144x144.png`,
-    msapplicationConfig: `https://${siteDomain}/browserconfig.xml`,
+    msapplicationTileImage: `${siteDomain}/images/mstile-144x144.png`,
+    msapplicationConfig: `${siteDomain}/browserconfig.xml`,
 
     // Robots
     robots: "index, follow",
     googlebot: "index, follow",
-    canonical: `https://www.${siteDomain}`,
+    canonical: siteDomain,
 });
 </script>
 

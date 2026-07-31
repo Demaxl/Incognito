@@ -1,0 +1,43 @@
+# Render Blueprint — free-tier friendly Django API
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: incognito-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_prod
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: FRONTEND_URL
+        value: https://incgt.link
+      - key: COOKIE_DOMAIN
+        value: .incgt.link
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://incgt.link,https://www.incgt.link
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://incgt.link,https://www.incgt.link
+      - key: DATABASE_URL
+        sync: false
+      - key: USE_S3_MEDIA
+        value: "True"
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_ENDPOINT_URL
+        sync: false
+      - key: R2_REGION_NAME
+        value: auto
+      - key: R2_CUSTOM_DOMAIN
+        sync: false
