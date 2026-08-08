@@ -37,7 +37,7 @@
                     {{ message.text }}
                 </p>
                 <div class="relative w-[800px] h-[800px] bg-transparent">
-                    <img :src="message.content" :alt="message.text || 'Image message'" :data-message-id="message.id"
+                    <img :src="cardImageSrc" :alt="message.text || 'Image message'" :data-message-id="message.id"
                         crossorigin="anonymous" class="w-full h-full object-contain rounded-lg" @load="onImageLoad"
                         @error="onImageError" ref="messageImage" />
                 </div>
@@ -107,6 +107,17 @@ const cardContainer = useTemplateRef("cardContainer");
 const messageImage = useTemplateRef("messageImage");
 const mediaSlot = useTemplateRef("mediaSlot");
 const imageLoaded = ref(false);
+
+// The inbox thumbnail (MessageItem.vue) loads this same URL without
+// `crossorigin`, which caches a non-CORS copy. html2canvas then needs a CORS
+// (crossorigin) fetch; reusing that tainted cache entry triggers a false
+// "No 'Access-Control-Allow-Origin'" error even though R2 sends the header.
+// A distinct query param forces a separate, clean CORS fetch/cache entry.
+const cardImageSrc = computed(() => {
+    const url = props.message.content;
+    if (props.message.message_type !== "image" || !url) return url;
+    return `${url}${url.includes("?") ? "&" : "?"}cors=1`;
+});
 
 const OUTPUT_WIDTH = 1080;
 const OUTPUT_HEIGHT = 1920;
