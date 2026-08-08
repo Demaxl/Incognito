@@ -65,18 +65,41 @@ User uploads (images / audio / video) must not live on Render’s disk — it is
 | `R2_SECRET_ACCESS_KEY` | from Cloudflare |
 | `R2_BUCKET_NAME` | `incognito-media` |
 | `R2_ENDPOINT_URL` | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` |
-| `R2_REGION_NAME` | `auto` |
-| `R2_CUSTOM_DOMAIN` | `pub-xxxx.r2.dev` (no `https://`) |
+| `R2_REGION_NAME` | `us-east-1` |
+| `R2_CUSTOM_DOMAIN` | `media.incgto.xyz` (no `https://`) |
 
 5. Deploy. Open `https://<your-service>.onrender.com/admin/` — you should get Django’s login (or a redirect). First request on the free tier can take ~30–60s (cold start).
 
-6. **Custom domain** on the Render service:
-   - Add `api.incgt.link`
+6. **R2 CORS (required for share cards / canvas / downloads)**
+
+   Share cards use `html2canvas`, which reads images from `media.incgto.xyz` in the browser. Without bucket CORS, Chrome blocks with:
+   `No 'Access-Control-Allow-Origin' header is present`.
+
+   **Option A — Cloudflare dashboard**
+
+   1. R2 → your bucket → **Settings** → **CORS Policy**
+   2. Paste the contents of `backend/r2-cors.json` (or add origins `https://www.incgto.xyz`, `https://incgto.xyz`, methods `GET`/`HEAD`)
+   3. Save
+
+   **Option B — script (uses your R2 S3 API keys)**
+
+   ```bash
+   cd backend
+   export R2_ACCESS_KEY_ID=...
+   export R2_SECRET_ACCESS_KEY=...
+   export R2_BUCKET_NAME=incognito-media
+   export R2_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+   export R2_REGION_NAME=us-east-1
+   python configure_r2_cors.py
+   ```
+
+7. **Custom domain** on the Render service:
+   - Add `api.incgto.xyz`
    - Render shows a CNAME target (usually `xxx.onrender.com`)
 
-### Namecheap DNS for the API
+### DNS for the API
 
-In Namecheap → Domain List → **incgt.link** → Advanced DNS:
+In your DNS host for **incgto.xyz**:
 
 | Type  | Host | Value                         | TTL  |
 |-------|------|-------------------------------|------|
@@ -84,11 +107,12 @@ In Namecheap → Domain List → **incgt.link** → Advanced DNS:
 
 Wait for DNS (often a few minutes, sometimes up to an hour). Then in Render, verify the domain / enable HTTPS.
 
-Update `ALLOWED_HOSTS` to include `api.incgt.link` if you have not already.
+Update `ALLOWED_HOSTS` to include `api.incgto.xyz` if you have not already.
 
-Optional: create a Django superuser from Render **Shell**:
+Optional: create a Django superuser from your laptop against Neon (Render free has no shell):
 
 ```bash
+# see earlier guidance — point DATABASE_URL at Neon and run createsuperuser
 python manage.py createsuperuser
 ```
 

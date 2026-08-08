@@ -38,7 +38,8 @@
                 </p>
                 <div class="relative w-[800px] h-[800px] bg-transparent">
                     <img :src="message.content" :alt="message.text || 'Image message'" :data-message-id="message.id"
-                        class="w-full h-full object-contain rounded-lg" @load="onImageLoad" ref="messageImage" />
+                        crossorigin="anonymous" class="w-full h-full object-contain rounded-lg" @load="onImageLoad"
+                        @error="onImageError" ref="messageImage" />
                 </div>
             </div>
 
@@ -134,6 +135,13 @@ const onImageLoad = () => {
     generateImage();
 };
 
+const onImageError = (event) => {
+    console.error(
+        "Error loading image (CORS or network). Check R2 bucket CORS allows this origin.",
+        event?.target?.src
+    );
+};
+
 // Function to generate the image
 const generateImage = () => {
     if (!cardContainer.value) return;
@@ -148,12 +156,13 @@ const generateImage = () => {
         width: OUTPUT_WIDTH,
         height: OUTPUT_HEIGHT,
         useCORS: true,
+        allowTaint: false,
         backgroundColor: null,
         windowWidth: OUTPUT_WIDTH,
         windowHeight: OUTPUT_HEIGHT,
-        imageTimeout: 0,
+        imageTimeout: 15000,
         onclone: (clonedDoc) => {
-            // Ensure the cloned document has the image loaded
+            // Ensure CORS mode is set on the clone before capture
             const clonedImage = clonedDoc.querySelector(
                 `img[data-message-id="${props.message.id}"]`
             );

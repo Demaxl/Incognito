@@ -1,0 +1,13 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://www.incgto.xyz",
+      "https://incgto.xyz",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag", "Content-Length", "Content-Type", "Accept-Ranges"],
+    "MaxAgeSeconds": 86400
+  }
+]
